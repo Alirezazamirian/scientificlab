@@ -100,5 +100,5 @@ class Code(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created at"))
 
     def __str__(self):
-        return f'{self.user.full_name} --- {self.verification_code}'
+        return f'{self.verification_code}'
 

@@ -1,38 +1,43 @@
 from random import randint
 from rest_framework.authtoken.models import Token
-from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, IsAdminUser
-from rest_framework.generics import ValidationError, ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
 from accounts.models import User, Code
-from accounts.serializers import UserSerializer, EmailSerializer
+from accounts.serializers import UserSerializer, EmailSerializer, LoginSerializer
 from utils.verification import code_expiration
+from django.core.mail import send_mail
+from scientificlab.settings import EMAIL_HOST_USER
+
 
 
 class LoginView(APIView):
-    serializer_class = UserSerializer
+    serializer_class = LoginSerializer
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            code = Code.objects.filter(user__phone=serializer.validated_data['phone']).exists()
-
-            if not self.request.user.is_active and code and code_expiration(serializer.validated_data['phone']):
-                code.delete()
-                code = Code.objects.create(user__phone=serializer.validated_data['phone'])
-                # todo: send another email
-                return Response({'result': 'code has been sent'}, status=status.HTTP_200_OK)
-            elif not self.request.user.is_active and code and not code_expiration(serializer.validated_data['phone']):
-                return Response({'result': 'insert existed code'}, status=status.HTTP_208_ALREADY_REPORTED)
-
+            code = Code.objects.filter(user__phone=serializer.validated_data['phone']).last()
             user = User.objects.filter(phone=serializer.validated_data['phone']).first()
             if user.phone == serializer.validated_data['phone'] and user.password == serializer.validated_data['password']:
-                token = Token.objects.create(user=self.request.user)
+                if not user.is_active and code and code_expiration(serializer.validated_data['phone']):
+                    code.delete()
+                    code = Code.objects.create(user=user, verification_code=randint(10000, 99999))
+                    send_mail("your verification code", f"your code : {code}", EMAIL_HOST_USER, [user.email])
+                    return Response({'result': 'code has been sent'}, status=status.HTTP_200_OK)
+
+                elif not user.is_active and code and not code_expiration(serializer.validated_data['phone']):
+                    return Response({'result': 'insert existed code'}, status=status.HTTP_208_ALREADY_REPORTED)
+
+                elif user.is_active:
+                    token = Token.objects.create(user=user)
+                    return Response({'token': token.key}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': 'some error occurred'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({'error': 'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
-            return Response({'token': token}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RegisterView(APIView):
@@ -62,7 +67,8 @@ class RegisterView(APIView):
                 degree=serializer.validated_data.get('degree', None),
                 branch=serializer.validated_data.get('branch', None),
             )
-            Code.objects.create(user=user, verification_code=randint(10000, 99999))
+            code = Code.objects.create(user=user, verification_code=randint(10000, 99999))
+            send_mail("your verification code", f"your code : {code}", EMAIL_HOST_USER, [user.email])
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -77,13 +83,17 @@ class EmailVerificationView(APIView):
             if serializer.validated_data == 0:
                 return Response({'error': 'code is expired'}, status=status.HTTP_400_BAD_REQUEST)
             user = User.objects.filter(phone=serializer.validated_data['phone']).first()
-            code = Code.objects.filter(user=user).first()
-            if serializer.validated_data['verification_code'] == code:
+            code = Code.objects.filter(user=user).last()
+            if int(serializer.validated_data['verification_code']) == int(code.verification_code):
                 code.delete()
                 user.is_active = True
                 user.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                token = Token.objects.create(user=user)
+
+                return Response({'token': token.key}, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'code is invalid!'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

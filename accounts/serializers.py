@@ -52,3 +52,15 @@ class EmailSerializer(serializers.Serializer):
         if code_expiration(attrs['phone']):
             return 0
         return attrs
+
+
+class LoginSerializer(serializers.Serializer):
+    phone = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
+    class Meta:
+        fields = {
+            'password',
+            'phone'
+        }
+
+

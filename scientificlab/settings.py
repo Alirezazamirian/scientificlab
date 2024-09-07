@@ -160,3 +160,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 DATE_INPUT_FORMATS = '%Y-%m-%d'
 TIME_INPUT_FORMATS = '%H:%M:%S'
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'autoplanner.ir'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = "labscience@autoplanner.ir"
+EMAIL_HOST_PASSWORD = "Labscience@root"
