@@ -23,11 +23,11 @@ class FavouriteView(viewsets.ModelViewSet):
     queryset = Favorite.objects.all()
     serializer_class = FavouriteSerializer
     permission_classes = [IsAuthenticated]
-    http_method_names = ['GET', 'DELETE']
+    lookup_field = 'pk'
+    http_method_names = ['get', 'post', 'delete',]
 
     def get_queryset(self):
-        queryset = Favorite.objects.filter(user=self.request.user).first()
-        return queryset
+        return Favorite.objects.filter(user=self.request.user)
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -38,15 +38,11 @@ class FavouriteView(viewsets.ModelViewSet):
             return Response({'message': 'there is no favourite list!'}, status=status.HTTP_204_NO_CONTENT)
 
     def create(self, request, *args, **kwargs):
-        params = self.request.query_params.get('is_favourite', None)
+        params = self.request.query_params.get('article_id', None)
         if params:
-            Favorite.objects.get_or_create()
+            Favorite.objects.create(user=request.user, articles_id=params)
+            return Response({'message': 'favourite was created'}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'error': 'insert article_id'}, status=status.HTTP_400_BAD_REQUEST)
 
-    def destroy(self, request, *args, **kwargs):
-        query_params = self.request.query_params.getlist('article', None)
-        queryset = self.get_queryset()
-        selected_articles = queryset.articles
-        for article in query_params:
-            selected_articles.remove(article)
-        queryset.save()
-        return Response({'message': 'your favourite list was updated successfully'})
+

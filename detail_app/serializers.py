@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ContactUs, Favorite, Blog, BlogCategory
+from .models import ContactUs, Favorite, Blog, BlogCategory, Star
 from accounts.serializers import UserSerializer
 from articles.serializers import MiddleArticleSerializer, LastArticleSerializer
 
@@ -31,4 +31,10 @@ class FavouriteSerializer(serializers.ModelSerializer):
         return UserSerializer(instance=obj.user).data
 
     def get_articles(self, obj):
-        return LastArticleSerializer(instance=obj.articles, many=True).data
+        return LastArticleSerializer(instance=obj.articles).data
+
+
+class ScoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Star
+        fields = '__all__'

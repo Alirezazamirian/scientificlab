@@ -35,14 +35,14 @@ class ContactUs(GeneralDateModel):
 
 class Favorite(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('User'))
-    articles = models.ManyToManyField(LastArticle, verbose_name=_('Articles'))
+    articles = models.ForeignKey(LastArticle, verbose_name=_('Articles'), on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = _('Favorite')
         verbose_name_plural = _('Favorites')
 
     def __str__(self):
-        return f'{self.user.full_name} - {self.articles.count}'
+        return f'{self.user.full_name} - {self.articles.title}'
 
 
 class Blog(GeneralDateModel):
