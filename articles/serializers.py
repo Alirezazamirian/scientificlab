@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import HeadArticle, SubHeadArticle, MiddleArticle, LastArticle
-from detail_app.serializers import ScoreSerializer
 
 
 class HeadArticleSerializer(serializers.ModelSerializer):
@@ -48,7 +47,6 @@ class MiddleArticleSerializer(serializers.ModelSerializer):
 class LastArticleSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField()
     update_at = serializers.SerializerMethodField()
-    score = serializers.SerializerMethodField()
 
     class Meta:
         model = LastArticle
@@ -59,7 +57,3 @@ class LastArticleSerializer(serializers.ModelSerializer):
 
     def get_update_at(self, obj):
         return obj.get_updated_at_jalali()
-
-    def get_score(self, obj):
-        return ScoreSerializer(obj.score).data
-

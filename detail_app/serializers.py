@@ -38,3 +38,37 @@ class ScoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Star
         fields = '__all__'
+        extra_kwargs = {
+            'id': {'read_only': True},
+            'user': {'required': False, 'read_only': True},
+            'article': {'read_only': True, 'required': False},
+            'score': {'required': True},
+        }
+
+    def validate(self, attr):
+        if not attr['score'] <= 5 and attr['score'] >= 1:
+            return 1
+        else:
+            return attr
+
+
+class BlogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Blog
+        fields = '__all__'
+
+
+class BlogCategorySerializer(serializers.ModelSerializer):
+    blog = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = BlogCategory
+        fields = '__all__'
+
+    def get_blog(self, obj):
+        print(obj)
+        blog = Blog.objects.filter(category=obj)
+        return BlogSerializer(instance=blog, many=True).data
+
+
+

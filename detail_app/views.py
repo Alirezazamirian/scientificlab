@@ -2,8 +2,8 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import ContactUsSerializer, FavouriteSerializer
-from .models import ContactUs, Favorite
+from .serializers import ContactUsSerializer, FavouriteSerializer, ScoreSerializer, BlogSerializer, BlogCategorySerializer
+from .models import ContactUs, Favorite, Star, BlogCategory, Blog
 from django.shortcuts import get_object_or_404
 
 
@@ -46,3 +46,31 @@ class FavouriteView(viewsets.ModelViewSet):
             return Response({'error': 'insert article_id'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class ScoreView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ScoreSerializer
+
+    def post(self, request):
+        params = self.request.query_params.get('article_id', None)
+        data = self.request.POST
+        serializer = self.serializer_class(data=data)
+        if Star.objects.filter(user=self.request.user):
+            return Response({'error': 'each user can score once!'}, status=status.HTTP_400_BAD_REQUEST)
+        if serializer == 1:
+            return Response({'error': 'score must be 1 to 5!'}, status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid():
+            Star.objects.create(user=self.request.user, article_id=params, score=serializer.validated_data['score'])
+            return Response({'message': 'score was added successfully'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BlogView(APIView):
+    serializer_class = BlogCategorySerializer
+
+    def get_queryset(self):
+        return BlogCategory.objects.all()
+
+    def get(self, request):
+        cat_blogs = self.get_queryset()
+        serializer = self.serializer_class(cat_blogs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
