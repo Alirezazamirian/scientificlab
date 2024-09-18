@@ -59,7 +59,7 @@ class LastArticle(GeneralDateModel):
     middle_article = models.ForeignKey(MiddleArticle, on_delete=models.CASCADE, verbose_name=_('Middle Article'),
                                        blank=True, null=True)
     abbreviation_name = models.CharField(max_length=50, verbose_name=_('Abbreviation'), null=True, blank=True)
-    score = models.IntegerField(verbose_name=_('Score'), default=0, validators=[MinValueValidator(1), MaxValueValidator(5)])
+    score = models.IntegerField(verbose_name=_('Score'), default=0, validators=[MinValueValidator(0), MaxValueValidator(5)], blank=True, null=True)
 
     class Meta:
         verbose_name = _('Last Article')

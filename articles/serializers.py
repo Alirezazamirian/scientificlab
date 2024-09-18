@@ -32,8 +32,24 @@ class SubHeadArticleSerializer(serializers.ModelSerializer):
 class MiddleArticleSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField()
     update_at = serializers.SerializerMethodField()
+
     class Meta:
         model = MiddleArticle
+        exclude = ['updated_at']
+
+    def get_create_at(self, obj):
+        return obj.get_create_at_jalali()
+
+    def get_update_at(self, obj):
+        return obj.get_updated_at_jalali()
+
+
+class LastArticleSerializer(serializers.ModelSerializer):
+    create_at = serializers.SerializerMethodField()
+    update_at = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LastArticle
         exclude = ['updated_at']
 
     def get_create_at(self, obj):
