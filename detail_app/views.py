@@ -37,6 +37,11 @@ class FavouriteView(viewsets.ModelViewSet):
         else:
             return Response({'message': 'there is no favourite list!'}, status=status.HTTP_204_NO_CONTENT)
 
+    def create(self, request, *args, **kwargs):
+        params = self.request.query_params.get('is_favourite', None)
+        if params:
+            Favorite.objects.get_or_create()
+
     def destroy(self, request, *args, **kwargs):
         query_params = self.request.query_params.getlist('article', None)
         queryset = self.get_queryset()

@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'utils',
     'articles',
     'detail_app',
+    'superadmin',
 ]
 
 MIDDLEWARE = [

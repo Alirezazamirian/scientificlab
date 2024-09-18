@@ -19,6 +19,8 @@ class LoginView(APIView):
         if serializer.is_valid():
             code = Code.objects.filter(user__phone=serializer.validated_data['phone']).last()
             user = User.objects.filter(phone=serializer.validated_data['phone']).first()
+            if not user:
+                return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
             if user.phone == serializer.validated_data['phone'] and user.password == serializer.validated_data['password']:
                 if not user.is_active and code and code_expiration(serializer.validated_data['phone']):
                     code.delete()
@@ -30,6 +32,9 @@ class LoginView(APIView):
                     return Response({'result': 'insert existed code'}, status=status.HTTP_208_ALREADY_REPORTED)
 
                 elif user.is_active:
+                    old_token = Token.objects.filter(user=user).first()
+                    if old_token:
+                        old_token.delete()
                     token = Token.objects.create(user=user)
                     return Response({'token': token.key}, status=status.HTTP_200_OK)
                 else:
