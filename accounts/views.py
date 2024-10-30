@@ -36,7 +36,7 @@ class LoginView(APIView):
                     if old_token:
                         old_token.delete()
                     token = Token.objects.create(user=user)
-                    return Response({'token': token.key}, status=status.HTTP_200_OK)
+                    return Response({'token': token.key, 'superadmin': user.is_superuser}, status=status.HTTP_200_OK)
                 else:
                     return Response({'error': 'some error occurred'}, status=status.HTTP_400_BAD_REQUEST)
             else:

@@ -92,6 +92,20 @@ class User(AbstractUser):
     def __str__(self):
         return f'{self.phone} --- {self.email} --- {self.full_name}'
 
+    def get_joined_at(self):
+        if self.date_joined:
+            return datetime2jalali(self.date_joined).strftime(f'{DATE_INPUT_FORMATS} - {TIME_INPUT_FORMATS}')
+        return None
+
+    def get_donate_at(self):
+        if self.donate_at:
+            return datetime2jalali(self.donate_at).strftime(f'{DATE_INPUT_FORMATS} - {TIME_INPUT_FORMATS}')
+        return None
+
+    def get_last_login(self):
+        if self.last_login:
+            return datetime2jalali(self.last_login).strftime(f'{DATE_INPUT_FORMATS} - {TIME_INPUT_FORMATS}')
+        return None
 
 class Code(models.Model):
     verification_code = models.CharField(max_length=10, verbose_name=_("Verification code"), unique=True, null=True,
