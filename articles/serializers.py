@@ -5,6 +5,7 @@ from .models import HeadArticle, SubHeadArticle, MiddleArticle, LastArticle
 class HeadArticleSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField()
     update_at = serializers.SerializerMethodField()
+
     class Meta:
         model = HeadArticle
         exclude = ['updated_at']
@@ -15,9 +16,11 @@ class HeadArticleSerializer(serializers.ModelSerializer):
     def get_update_at(self, obj):
         return obj.get_updated_at_jalali()
 
+
 class SubHeadArticleSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField()
     update_at = serializers.SerializerMethodField()
+
     class Meta:
         model = SubHeadArticle
         exclude = ['updated_at']

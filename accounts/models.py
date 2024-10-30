@@ -14,14 +14,6 @@ from scientificlab.settings import DATE_INPUT_FORMATS, TIME_INPUT_FORMATS
 
 RegexValidator(regex=r'^09\d{9}$')
 
-DEGREE = (
-    ('Diploma', 'دیپلم'),
-    ('Bachelor', 'کارشناسی'),
-    ('Master', 'کارشناسی ارشد'),
-    ('PHD', 'دکتری'),
-    ('Doctor', 'پزشکی'),
-)
-
 
 def validate_phone_number(value):
     pattern = r'^09\d{9}$'
@@ -78,7 +70,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True, verbose_name=_("Email"))
     is_active = models.BooleanField(default=False, verbose_name=_("Is Active"))
     date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
-    degree = models.CharField(max_length=50, verbose_name=_("Degree"), null=True, blank=True, choices=DEGREE)
+    degree = models.CharField(max_length=50, verbose_name=_("Degree"), null=True, blank=True)
     branch = models.CharField(max_length=50, verbose_name=_("Branch"), null=True, blank=True)
     is_pay = models.BooleanField(default=False, verbose_name=_("Is Pay"))
     pay_at = models.DateTimeField(blank=True, null=True, verbose_name=_("Pay at"))

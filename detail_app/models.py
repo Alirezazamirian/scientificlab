@@ -82,3 +82,18 @@ class Star(models.Model):
     def __str__(self):
         return f'{str(self.score)} - {self.user.full_name}'
 
+
+class Ticket(GeneralDateModel):
+    title = models.CharField(verbose_name=_('Title'), max_length=100)
+    description = models.TextField(verbose_name=_('Description'), max_length=500)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('User'))
+    is_answer = models.BooleanField(verbose_name=_('Is Answered'), default=False)
+    answer = models.TextField(verbose_name=_('Answer'), null=True, blank=True, max_length=500)
+    answer_create_at = models.DateTimeField(verbose_name=_('Create at'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('Ticket')
+        verbose_name_plural = _('Tickets')
+
+    def __str__(self):
+        return f'{self.title} --- {self.user.full_name}'

@@ -58,12 +58,6 @@ class RegisterView(APIView):
                 case 2:
                     return Response({'error': 'password does not match'}, status=status.HTTP_400_BAD_REQUEST)
 
-                case 3:
-                    return Response({'error' 'input the degree right'}, status=status.HTTP_400_BAD_REQUEST)
-
-                case 4:
-                    return Response({'error': 'fullname'}, status=status.HTTP_400_BAD_REQUEST)
-
             user = User.objects.create(
                 full_name=serializer.validated_data['full_name'],
                 email=serializer.validated_data['email'],

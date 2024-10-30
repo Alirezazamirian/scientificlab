@@ -2,17 +2,15 @@ from rest_framework import serializers
 from accounts.models import User
 from utils.verification import code_expiration
 
-DEGREE = ['پزشکی', 'دیپلم', 'کارشناسی', 'کارشناسی ارشد', 'دکتری']
-
 
 class UserSerializer(serializers.ModelSerializer):
-    full_name = serializers.CharField(required=True)
-    phone = serializers.CharField(required=True, write_only=True)
+    full_name = serializers.CharField(required=True, write_only=True)
+    phone = serializers.CharField(required=True)
     email = serializers.EmailField(required=True, write_only=True)
-    degree = serializers.CharField(required=False)
+    degree = serializers.CharField(required=False, write_only=True)
     password_confirmation = serializers.CharField(required=True, write_only=True)
     password = serializers.CharField(required=True, write_only=True)
-    branch = serializers.CharField(required=False)
+    branch = serializers.CharField(required=False, write_only=True)
 
     class Meta:
         model = User
@@ -31,10 +29,6 @@ class UserSerializer(serializers.ModelSerializer):
             return 1
         if attrs['password'] != attrs['password_confirmation']:
             return 2
-        if attrs['degree'] not in DEGREE:
-            return 3
-        if attrs['full_name'].split(' ').__len__() <= 1:
-            return 4
         return attrs
 
 
