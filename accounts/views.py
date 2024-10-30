@@ -25,7 +25,7 @@ class LoginView(APIView):
                 if not user.is_active and code and code_expiration(serializer.validated_data['phone']):
                     code.delete()
                     code = Code.objects.create(user=user, verification_code=randint(10000, 99999))
-                    # send_mail("your verification code", f"your code : {code}", EMAIL_HOST_USER, [user.email])
+                    send_mail("your verification code", f"your code : {code}", EMAIL_HOST_USER, [user.email])
                     return Response({'result': 'code has been sent'}, status=status.HTTP_200_OK)
 
                 elif not user.is_active and code and not code_expiration(serializer.validated_data['phone']):
@@ -67,7 +67,7 @@ class RegisterView(APIView):
                 branch=serializer.validated_data.get('branch', None),
             )
             code = Code.objects.create(user=user, verification_code=randint(10000, 99999))
-            # send_mail("your verification code", f"your code : {code}", EMAIL_HOST_USER, [user.email])
+            send_mail("your verification code", f"your code : {code}", EMAIL_HOST_USER, [user.email])
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
