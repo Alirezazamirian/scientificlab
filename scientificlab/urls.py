@@ -11,8 +11,8 @@ urlpatterns = [
     path('articles/', include('articles.urls')),
     path('detail/', include('detail_app.urls')),
     path('superadmin/', include('superadmin.urls')),
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('swagger/', SpectacularAPIView.as_view(), name='schema'),
+    path('swagger/api/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS)

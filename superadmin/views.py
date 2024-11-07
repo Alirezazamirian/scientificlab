@@ -1,12 +1,13 @@
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
-
-from .serializers import ManageUserSerializer, ManageArticleSerializer, ManageTicketsSerializer
+from scientificlab.settings import EMAIL_HOST_USER
+from .serializers import ManageUserSerializer, ManageArticleSerializer, ManageTicketsSerializer, ManageContactUsSerializer
 from .permissions import IsSuperAndStuffUser
 from accounts.models import User
 from articles.models import LastArticle
-from detail_app.models import Ticket
+from detail_app.models import Ticket, ContactUs
+from django.core.mail import send_mail
 
 
 class ManageUsers(viewsets.ModelViewSet):
@@ -97,4 +98,32 @@ class ManageTickets(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None, *args, **kwargs):
         ticket = self.get_object()
         ser = self.serializer_class(ticket, partial=True)
+        return Response(ser.data, status=status.HTTP_200_OK)
+
+
+class ManageContactUs(viewsets.ModelViewSet):
+    queryset = ContactUs.objects.all()
+    serializer_class = ManageContactUsSerializer
+    permission_classes = (IsSuperAndStuffUser,)
+    lookup_field = 'pk'
+    http_method_names = ['get', 'put', ]
+
+    def list(self, request, *args, **kwargs):
+        ser = self.serializer_class(self.queryset, many=True)
+        return Response(ser.data, status=status.HTTP_200_OK)
+
+    def update(self, request, pk=None, *args, **kwargs):
+        contact_us = self.get_object()
+        ser = self.serializer_class(contact_us, data=request.data, partial=True)
+        if ser.is_valid():
+            ser.save()
+            if contact_us.is_answer:
+                send_mail("subject", f"your answer is : {contact_us.answer}", EMAIL_HOST_USER, [contact_us.user.email])
+            return Response(ser.data, status=status.HTTP_200_OK)
+        else:
+            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        contact_us = self.get_object()
+        ser = self.serializer_class(contact_us, partial=True)
         return Response(ser.data, status=status.HTTP_200_OK)

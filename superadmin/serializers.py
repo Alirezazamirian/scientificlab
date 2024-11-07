@@ -2,7 +2,7 @@ from rest_framework import serializers
 from accounts.models import User
 from articles.models import LastArticle
 from articles.serializers import SubHeadArticleSerializer, MiddleArticleSerializer
-from detail_app.models import Ticket
+from detail_app.models import Ticket, ContactUs
 
 
 class ManageUserSerializer(serializers.ModelSerializer):
@@ -80,6 +80,21 @@ class ManageTicketsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ticket
+        fields = '__all__'
+
+    def get_create_at_jalali(self, obj):
+        return obj.get_create_at_jalali()
+
+    def get_update_at_jalali(self, obj):
+        return obj.get_updated_at_jalali()
+
+
+class ManageContactUsSerializer(serializers.ModelSerializer):
+    create_at_jalali = serializers.SerializerMethodField(read_only=True)
+    update_at_jalali = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = ContactUs
         fields = '__all__'
 
     def get_create_at_jalali(self, obj):
