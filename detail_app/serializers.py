@@ -4,12 +4,32 @@ from accounts.serializers import UserSerializer
 from articles.serializers import MiddleArticleSerializer, LastArticleSerializer
 
 class ContactUsSerializer(serializers.ModelSerializer):
-    create_at = serializers.SerializerMethodField()
-    update_at = serializers.SerializerMethodField()
+    create_at = serializers.SerializerMethodField(read_only=True)
+    update_at = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ContactUs
-        exclude = ['updated_at']
+        fields = [
+            'create_at',
+            'update_at',
+            'title',
+            'description',
+            'answer',
+            'is_answered',
+            'user',
+            'type',
+        ]
+        extra_kwargs = {
+            'user': {'read_only': True},
+            'answer': {'required': False},
+            'is_answered': {'required': False},
+        }
+
+    def create(self, validated_data):
+        user = self.request.user
+        validated_data['user'] = user
+        contact_us_instance = ContactUs.objects.create(**validated_data)
+        return contact_us_instance
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()

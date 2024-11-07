@@ -39,11 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # external apps
+    'corsheaders',
     'rest_framework.authtoken',
     'rest_framework',
     'jalali_date',
     'drf_spectacular',
-    'corsheaders',
     # internal apps
     'accounts',
     'utils',
@@ -64,6 +64,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOW_ALL_ORIGINS: True
+CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'scientificlab.urls'
 

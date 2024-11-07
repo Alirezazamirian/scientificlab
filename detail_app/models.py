@@ -7,23 +7,13 @@ from django.utils.translation import gettext as _
 
 
 
-CONTACTUS_CHOICES = (
-    ('Problem', 'انتقادات'),
-    ('Suggestion', 'پیشنهادات'),
-    ('Error report', 'گزارش مشکل'),
-    ('Contact us', 'ارتباط با ما'),
-)
-
-
-
-
 class ContactUs(GeneralDateModel):
     title = models.CharField(verbose_name=_('Title'), max_length=100)
     description = models.TextField(verbose_name=_('Description'), max_length=500)
     answer = models.TextField(verbose_name=_('Answer'), null=True, blank=True)
     is_answered = models.BooleanField(verbose_name=_('Is Answered'), default=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('User'))
-    type = models.CharField(verbose_name=_('Type'), max_length=40, choices=CONTACTUS_CHOICES)
+    type = models.CharField(verbose_name=_('Type'), max_length=40)
 
     class Meta:
         verbose_name = _('Contact Us')

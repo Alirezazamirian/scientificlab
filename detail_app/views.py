@@ -12,7 +12,7 @@ class ContactUsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = self.serializer_class(self.request.POST)
+        serializer = self.serializer_class(data=self.request.POST)
         if serializer.is_valid():
             serializer.save()
             return Response({'message': 'message was successfully sent'}, status=status.HTTP_200_OK)
