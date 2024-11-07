@@ -9,7 +9,7 @@ class ContactUsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ContactUs
-        excludes = ['updated_at']
+        exclude = ['updated_at']
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
