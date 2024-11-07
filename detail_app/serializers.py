@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ContactUs, Favorite, Blog, BlogCategory, Star
+from .models import ContactUs, Favorite, Blog, BlogCategory, Star, TicketCategory
 from accounts.serializers import UserSerializer
 from articles.serializers import MiddleArticleSerializer, LastArticleSerializer
 
@@ -25,11 +25,6 @@ class ContactUsSerializer(serializers.ModelSerializer):
             'is_answered': {'required': False},
         }
 
-    def create(self, validated_data):
-        user = self.request.user
-        validated_data['user'] = user
-        contact_us_instance = ContactUs.objects.create(**validated_data)
-        return contact_us_instance
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
@@ -91,4 +86,8 @@ class BlogCategorySerializer(serializers.ModelSerializer):
         return BlogSerializer(instance=blog, many=True).data
 
 
+class TicketCategorySerializer(serializers.ModelSerializer):
 
+    class Meta:
+        model = TicketCategory
+        fields = '__all__'

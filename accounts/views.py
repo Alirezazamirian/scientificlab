@@ -28,6 +28,11 @@ class LoginView(APIView):
                     send_mail("your verification code", f"your code : {code}", EMAIL_HOST_USER, [user.email])
                     return Response({'result': 'code has been sent'}, status=status.HTTP_200_OK)
 
+                elif not user.is_active and not code:
+                    code = Code.objects.create(user=user, verification_code=randint(10000, 99999))
+                    send_mail("your verification code", f"your code : {code}", EMAIL_HOST_USER, [user.email])
+                    return Response({'result': 'code has been sent'}, status=status.HTTP_200_OK)
+
                 elif not user.is_active and code and not code_expiration(serializer.validated_data['phone']):
                     return Response({'result': 'insert existed code'}, status=status.HTTP_208_ALREADY_REPORTED)
 

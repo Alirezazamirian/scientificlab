@@ -1,8 +1,10 @@
 from rest_framework import serializers
 from accounts.models import User
+from accounts.serializers import UserSerializer
 from articles.models import LastArticle
 from articles.serializers import SubHeadArticleSerializer, MiddleArticleSerializer
 from detail_app.models import Ticket, ContactUs
+from detail_app.serializers import TicketCategorySerializer
 
 
 class ManageUserSerializer(serializers.ModelSerializer):
@@ -75,30 +77,72 @@ class ManageArticleSerializer(serializers.ModelSerializer):
 
 
 class ManageTicketsSerializer(serializers.ModelSerializer):
-    create_at_jalali = serializers.SerializerMethodField(read_only=True)
-    update_at_jalali = serializers.SerializerMethodField(read_only=True)
+    create_at = serializers.SerializerMethodField(read_only=True)
+    update_at = serializers.SerializerMethodField(read_only=True)
+    user = serializers.SerializerMethodField(read_only=True)
+    ticket_category = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Ticket
-        fields = '__all__'
+        fields = [
+            'id',
+            'title',
+            'description',
+            'user',
+            'create_at',
+            'update_at',
+            'ticket_category',
+            'is_appropriate',
+            'parent',
+        ]
 
-    def get_create_at_jalali(self, obj):
+    def get_create_at(self, obj):
         return obj.get_create_at_jalali()
 
-    def get_update_at_jalali(self, obj):
+    def get_update_at(self, obj):
         return obj.get_updated_at_jalali()
+
+    def get_user(self, obj):
+        return UserSerializer(obj.user, partial=True).data
+
+    def get_ticket_category(self, obj):
+        return TicketCategorySerializer(obj.ticket_category, partial=True).data
+
+    def get_parent(self, obj):
+        return ManageTicketsSerializer(obj.parent, partial=True).data
 
 
 class ManageContactUsSerializer(serializers.ModelSerializer):
     create_at_jalali = serializers.SerializerMethodField(read_only=True)
     update_at_jalali = serializers.SerializerMethodField(read_only=True)
+    user = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ContactUs
-        fields = '__all__'
+        exclude = [
+            'create_at',
+            'updated_at'
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super(ManageContactUsSerializer, self).__init__(*args, **kwargs)
+        self.request = self.context.get('request')
+        if self.request:
+            self.user = self.request.user
+            self.method = self.request.method
+            if self.method in ['PUT']:
+                self.fields.get('is_answered').required = True
+                self.fields.get('answer').required = True
+                self.fields.get('title').required = False
+                self.fields.get('description').required = False
+                self.fields.get('type').required = False
+                self.fields.get('user').required = False
 
     def get_create_at_jalali(self, obj):
         return obj.get_create_at_jalali()
 
     def get_update_at_jalali(self, obj):
         return obj.get_updated_at_jalali()
+
+    def get_user(self, obj):
+        return ManageUserSerializer(obj.user, partial=True).data

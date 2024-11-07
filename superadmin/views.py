@@ -117,7 +117,7 @@ class ManageContactUs(viewsets.ModelViewSet):
         ser = self.serializer_class(contact_us, data=request.data, partial=True)
         if ser.is_valid():
             ser.save()
-            if contact_us.is_answer:
+            if contact_us.is_answered:
                 send_mail("subject", f"your answer is : {contact_us.answer}", EMAIL_HOST_USER, [contact_us.user.email])
             return Response(ser.data, status=status.HTTP_200_OK)
         else:

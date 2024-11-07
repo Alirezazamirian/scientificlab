@@ -73,14 +73,17 @@ class Star(models.Model):
         return f'{str(self.score)} - {self.user.full_name}'
 
 
+class TicketCategory(models.Model):
+    type = models.CharField(verbose_name=_('Type'), max_length=40)
+
+
 class Ticket(GeneralDateModel):
     title = models.CharField(verbose_name=_('Title'), max_length=100)
     description = models.TextField(verbose_name=_('Description'), max_length=500)
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('User'))
     is_appropriate = models.BooleanField(verbose_name=_('Is Appropriate'), default=False)
-    is_answer = models.BooleanField(verbose_name=_('Is Answered'), default=False)
-    answer = models.TextField(verbose_name=_('Answer'), null=True, blank=True, max_length=500)
-    answer_create_at = models.DateTimeField(verbose_name=_('Create at'), auto_now_add=True)
+    parent = models.ForeignKey('Ticket', verbose_name=_('Ticket'), on_delete=models.CASCADE, null=True, blank=True)
+    ticket_category = models.ForeignKey('TicketCategory', on_delete=models.CASCADE, verbose_name=_('Ticket Category'))
 
     class Meta:
         verbose_name = _('Ticket')

@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import ContactUsSerializer, FavouriteSerializer, ScoreSerializer, BlogSerializer, BlogCategorySerializer
 from .models import ContactUs, Favorite, Star, BlogCategory, Blog
-from django.shortcuts import get_object_or_404
 
 
 class ContactUsView(APIView):
@@ -14,7 +13,7 @@ class ContactUsView(APIView):
     def post(self, request):
         serializer = self.serializer_class(data=self.request.POST)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(user=self.request.user)
             return Response({'message': 'message was successfully sent'}, status=status.HTTP_200_OK)
         return Response({'error': 'data is invalid'}, status=status.HTTP_400_BAD_REQUEST)
 
