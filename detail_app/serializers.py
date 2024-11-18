@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ContactUs, Favorite, Blog, BlogCategory, Star, TicketCategory
+from .models import ContactUs, Favorite, Blog, BlogCategory, Star, TicketCategory, Ticket
 from accounts.serializers import UserSerializer
 from articles.serializers import MiddleArticleSerializer, LastArticleSerializer
 
@@ -68,12 +68,23 @@ class ScoreSerializer(serializers.ModelSerializer):
 
 
 class BlogSerializer(serializers.ModelSerializer):
+    create_at = serializers.SerializerMethodField(read_only=True)
+    update_at = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Blog
         fields = '__all__'
 
+    def get_create_at(self, obj):
+        return obj.get_create_at_jalali()
+
+    def get_update_at(self, obj):
+        return obj.get_updated_at_jalali()
+
 
 class BlogCategorySerializer(serializers.ModelSerializer):
+    create_at = serializers.SerializerMethodField(read_only=True)
+    update_at = serializers.SerializerMethodField(read_only=True)
     blog = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -81,9 +92,14 @@ class BlogCategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_blog(self, obj):
-        print(obj)
         blog = Blog.objects.filter(category=obj)
         return BlogSerializer(instance=blog, many=True).data
+
+    def get_create_at(self, obj):
+        return obj.get_create_at_jalali()
+
+    def get_update_at(self, obj):
+        return obj.get_updated_at_jalali()
 
 
 class TicketCategorySerializer(serializers.ModelSerializer):
@@ -91,3 +107,22 @@ class TicketCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = TicketCategory
         fields = '__all__'
+
+
+class TicketSerializer(serializers.ModelSerializer):
+    create_at = serializers.SerializerMethodField(read_only=True)
+    update_at = serializers.SerializerMethodField(read_only=True)
+    related_ticket = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Ticket
+        fields = '__all__'
+
+    def get_create_at(self, obj):
+        return obj.get_create_at_jalali()
+
+    def get_update_at(self, obj):
+        return obj.get_updated_at_jalali()
+
+    def get_related_ticket(self, obj):
+        return TicketSerializer(instance=obj.ticket).data

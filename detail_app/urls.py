@@ -5,7 +5,8 @@ from rest_framework import routers
 urlpatterns = [
     path('contact-us/', views.ContactUsView.as_view(), name='ContactUsView'),
     path('score/', views.ScoreView.as_view(), name='ScoreView'),
-    path('blog/', views.BlogView.as_view(), name='BlogView'),
+    path('blog/', views.BlogCategoryView.as_view(), name='BlogView'),
+    path('tickets/', views.TicketView.as_view(), name='TicketView'),
 ]
 
 

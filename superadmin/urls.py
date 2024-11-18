@@ -4,7 +4,7 @@ from rest_framework import routers
 from . import views
 
 urlpatterns = [
-    # path('users/', views.ManageUsers.as_view(), name='ManageUsers'),
+    path('payment/', views.UserPayment.as_view(), name='UserPayment'),
 ]
 
 router = routers.DefaultRouter()
@@ -22,3 +22,11 @@ urlpatterns += ticket_router.urls
 contactus_router = routers.DefaultRouter()
 contactus_router.register(r'contact-us', views.ManageContactUs)
 urlpatterns += contactus_router.urls
+
+blogcat_router = routers.DefaultRouter()
+blogcat_router.register(r'blog-category', views.ManageCategoryBlog)
+urlpatterns += blogcat_router.urls
+
+blog_router = routers.DefaultRouter()
+blog_router.register(r'contact-us', views.ManageBlog)
+urlpatterns += blog_router.urls

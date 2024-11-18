@@ -2,8 +2,11 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import ContactUsSerializer, FavouriteSerializer, ScoreSerializer, BlogSerializer, BlogCategorySerializer
-from .models import ContactUs, Favorite, Star, BlogCategory, Blog
+
+from accounts.models import User
+from .serializers import (ContactUsSerializer, FavouriteSerializer, ScoreSerializer, BlogSerializer,
+                          BlogCategorySerializer, TicketSerializer)
+from .models import ContactUs, Favorite, Star, BlogCategory, Blog, Ticket
 
 
 class ContactUsView(APIView):
@@ -53,7 +56,7 @@ class ScoreView(APIView):
         params = self.request.query_params.get('article_id', None)
         data = self.request.POST
         serializer = self.serializer_class(data=data)
-        if Star.objects.filter(user=self.request.user):
+        if Star.objects.filter(user=self.request.user, article_id=params):
             return Response({'error': 'each user can score once!'}, status=status.HTTP_400_BAD_REQUEST)
         if serializer == 1:
             return Response({'error': 'score must be 1 to 5!'}, status=status.HTTP_400_BAD_REQUEST)
@@ -63,7 +66,7 @@ class ScoreView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class BlogView(APIView):
+class BlogCategoryView(APIView):
     serializer_class = BlogCategorySerializer
 
     def get_queryset(self):
@@ -73,3 +76,28 @@ class BlogView(APIView):
         cat_blogs = self.get_queryset()
         serializer = self.serializer_class(cat_blogs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class TicketView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TicketSerializer
+    queryset = Ticket.objects.all()
+
+    def get(self, request):
+        serializer = self.serializer_class(self.queryset.filter(user=self.request.user), many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        parent_id = self.request.query_params.get('parent_id', None)
+        cat = self.request.query_params.get('ticket_category', None)
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            Ticket.objects.create(user=self.request.user,
+                                  title=serializer.validated_data['title'],
+                                  description=serializer.validated_data['description'],
+                                  parent_id=parent_id,
+                                  ticket_category=cat,
+                                  is_appropriate=serializer.validated_data['is_appropriate'])
+            return Response(data={'message': 'ticket was created'}, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
