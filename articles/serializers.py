@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import HeadArticle, SubHeadArticle, MiddleArticle, LastArticle
+from .models import HeadArticle, SubHeadArticle, MiddleArticle, LastArticle, ArticleDescription, ArticleImages
 from detail_app.models import Star
 
 
@@ -9,7 +9,7 @@ class HeadArticleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HeadArticle
-        exclude = ['updated_at']
+        exclude = ['updated_at', 'id']
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
@@ -21,26 +21,30 @@ class HeadArticleSerializer(serializers.ModelSerializer):
 class SubHeadArticleSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField()
     update_at = serializers.SerializerMethodField()
+    head_article = serializers.SerializerMethodField()
 
     class Meta:
         model = SubHeadArticle
-        exclude = ['updated_at']
+        exclude = ['updated_at', 'id']
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
 
     def get_update_at(self, obj):
         return obj.get_updated_at_jalali()
+
+    def get_head_article(self, obj):
+        return HeadArticleSerializer(obj.head_article).data
 
 
 class MiddleArticleSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField()
     update_at = serializers.SerializerMethodField()
-    allscore = serializers.SerializerMethodField(read_only=True)
+    sub_head_article = serializers.SerializerMethodField()
 
     class Meta:
         model = MiddleArticle
-        exclude = ['updated_at']
+        exclude = ['updated_at', 'id']
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
@@ -48,24 +52,72 @@ class MiddleArticleSerializer(serializers.ModelSerializer):
     def get_update_at(self, obj):
         return obj.get_updated_at_jalali()
 
-    def get_allscore(self, obj):
-        all_score = Star.objects.filter(article=obj)
-        all_star = 0
-        for star in all_score:
-            all_star += star.score
-        all_star = all_star / all_score.count()
-        return all_star
+    def get_sub_head_article(self, obj):
+        return SubHeadArticleSerializer(obj.sub_head_article).data
 
-class LastArticleSerializer(serializers.ModelSerializer):
+
+class ArticleImagesSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField()
     update_at = serializers.SerializerMethodField()
 
     class Meta:
-        model = LastArticle
-        exclude = ['updated_at']
+        model = ArticleImages
+        exclude = ['updated_at', 'id', 'article']
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
 
     def get_update_at(self, obj):
         return obj.get_updated_at_jalali()
+
+
+class ArticleDescriptionSerializer(serializers.ModelSerializer):
+    create_at = serializers.SerializerMethodField()
+    update_at = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ArticleDescription
+        exclude = ['updated_at', 'id', 'article']
+
+    def get_create_at(self, obj):
+        return obj.get_create_at_jalali()
+
+    def get_update_at(self, obj):
+        return obj.get_updated_at_jalali()
+
+    def get_image(self, obj):
+        if obj.image:
+            return ArticleImagesSerializer(obj.image).data
+
+class LastArticleSerializer(serializers.ModelSerializer):
+    create_at = serializers.SerializerMethodField()
+    update_at = serializers.SerializerMethodField()
+    sub_head_article = serializers.SerializerMethodField()
+    middle_article = serializers.SerializerMethodField()
+    images = serializers.SerializerMethodField()
+    seperated_description = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LastArticle
+        exclude = ['updated_at', 'id']
+
+    def get_create_at(self, obj):
+        return obj.get_create_at_jalali()
+
+    def get_update_at(self, obj):
+        return obj.get_updated_at_jalali()
+
+    def get_sub_head_article(self, obj):
+        if obj.sub_head_article:
+            return SubHeadArticleSerializer(obj.sub_head_article).data
+
+    def get_middle_article(self, obj):
+        if obj.middle_article:
+            return MiddleArticleSerializer(obj.middle_article).data
+
+    def get_images(self, obj):
+        return ArticleImagesSerializer(ArticleImages.objects.filter(article=obj), many=True).data
+
+    def get_seperated_description(self, obj):
+        return ArticleDescriptionSerializer(ArticleDescription.objects.filter(article=obj), many=True).data
