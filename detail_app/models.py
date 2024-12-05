@@ -37,7 +37,7 @@ class Favorite(models.Model):
 
 class Blog(GeneralDateModel):
     title = models.CharField(verbose_name=_('Title'), max_length=100)
-    description = models.TextField(verbose_name=_('Description'), max_length=500)
+    description = models.TextField(verbose_name=_('Description'), max_length=2000)
     image = models.ImageField(verbose_name=_('Image'), upload_to='blog', null=True, blank=True)
     category = models.ForeignKey('BlogCategory', on_delete=models.CASCADE, verbose_name=_('Category'), null=True, blank=True)
 
