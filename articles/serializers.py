@@ -90,6 +90,7 @@ class ArticleDescriptionSerializer(serializers.ModelSerializer):
         if obj.image:
             return ArticleImagesSerializer(obj.image).data
 
+
 class LastArticleSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField()
     update_at = serializers.SerializerMethodField()
@@ -97,6 +98,7 @@ class LastArticleSerializer(serializers.ModelSerializer):
     middle_article = serializers.SerializerMethodField()
     images = serializers.SerializerMethodField()
     seperated_description = serializers.SerializerMethodField()
+    score = serializers.SerializerMethodField()
 
     class Meta:
         model = LastArticle
@@ -121,3 +123,14 @@ class LastArticleSerializer(serializers.ModelSerializer):
 
     def get_seperated_description(self, obj):
         return ArticleDescriptionSerializer(ArticleDescription.objects.filter(article=obj), many=True).data
+
+    def get_score(self, obj):
+        if obj.score:
+            all_scores = Star.objects.filter(article=obj)
+            all_scores_count = all_scores.count()
+            star = 0
+            if all_scores_count > 1:
+                for score in all_scores:
+                    star = star + score.score
+                star = star / all_scores_count
+                return star
