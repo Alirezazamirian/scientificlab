@@ -58,3 +58,12 @@ class LoginSerializer(serializers.Serializer):
         }
 
 
+class AccountManagementSerializer(serializers.ModelSerializer):
+    update_time = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = '__all__'
+
+    def get_update_time(self, obj):
+        return obj.update_time

@@ -6,4 +6,5 @@ urlpatterns = [
     path('login/', views.LoginView.as_view(), name='LoginView'),
     path('verification/', views.EmailVerificationView.as_view(), name='EmailVerificationView'),
     path('logout/', views.LogoutView.as_view(), name='LogoutView'),
+    # path('user/<slug:slug>/', views.AccountManagementView.as_view(), name='AccountManagementView'),
 ]

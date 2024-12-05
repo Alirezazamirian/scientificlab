@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from accounts.models import User, Code
-from accounts.serializers import UserSerializer, EmailSerializer, LoginSerializer
+from accounts.serializers import UserSerializer, EmailSerializer, LoginSerializer, AccountManagementSerializer
 from utils.verification import code_expiration
 from django.core.mail import send_mail
 from scientificlab.settings import EMAIL_HOST_USER
@@ -111,3 +111,10 @@ class LogoutView(APIView):
             return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# todo: complete the user profile
+# class AccountManagementView(APIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = AccountManagementSerializer
+#
+#     def get(self, request, slug):
