@@ -10,7 +10,7 @@ ISFREE_ARTICLE = (
 
 
 class HeadArticle(GeneralDateModel):
-    title = models.CharField(max_length=50, verbose_name=_('Title'))
+    title = models.CharField(max_length=100, verbose_name=_('Title'))
     description = models.TextField(verbose_name=_('Description'), null=True, blank=True, max_length=500)
 
     class Meta:
@@ -22,12 +22,12 @@ class HeadArticle(GeneralDateModel):
 
 
 class SubHeadArticle(GeneralDateModel):
-    title = models.CharField(max_length=50, verbose_name=_('Title'))
+    title = models.CharField(max_length=100, verbose_name=_('Title'))
     description = models.TextField(verbose_name=_('Description'), null=True, blank=True, max_length=500)
     is_free = models.BooleanField(default=False, verbose_name=_('Is Free'))
     type = models.CharField(max_length=50, verbose_name=_('Type'), choices=ISFREE_ARTICLE)
     head_article = models.ForeignKey(HeadArticle, on_delete=models.CASCADE, verbose_name=_('Head Article'))
-    slug = models.SlugField(max_length=50, verbose_name=_('Slug'), unique=True, blank=True, null=True, default=f'{title}')
+    slug = models.SlugField(max_length=100, verbose_name=_('Slug'), unique=True, blank=True, null=True, default=f'{title}')
 
     class Meta:
         verbose_name = _('Sub Head Article')
@@ -38,11 +38,11 @@ class SubHeadArticle(GeneralDateModel):
 
 
 class MiddleArticle(GeneralDateModel):
-    title = models.CharField(max_length=50, verbose_name=_('Title'))
+    title = models.CharField(max_length=100, verbose_name=_('Title'))
     description = models.TextField(verbose_name=_('Description'), null=True, blank=True, max_length=500)
     sub_head_article = models.ForeignKey(SubHeadArticle, on_delete=models.CASCADE, verbose_name=_('Sub Head Article'),
                                          blank=True, null=True)
-    slug = models.SlugField(max_length=50, verbose_name=_('Slug'), unique=True, blank=True, null=True,
+    slug = models.SlugField(max_length=100, verbose_name=_('Slug'), unique=True, blank=True, null=True,
                             default=f'{title}')
 
     class Meta:
@@ -54,7 +54,7 @@ class MiddleArticle(GeneralDateModel):
 
 
 class LastArticle(GeneralDateModel):
-    title = models.CharField(max_length=50, verbose_name=_('Title'))
+    title = models.CharField(max_length=100, verbose_name=_('Title'))
     description = models.TextField(verbose_name=_('Description'), max_length=500)
     sub_head_article = models.ForeignKey(SubHeadArticle, on_delete=models.CASCADE, verbose_name=_('Sub Head Article'),
                                          blank=True, null=True)
@@ -62,7 +62,7 @@ class LastArticle(GeneralDateModel):
                                        blank=True, null=True)
     abbreviation_name = models.CharField(max_length=50, verbose_name=_('Abbreviation'), null=True, blank=True)
     score = models.IntegerField(verbose_name=_('Score'), default=0, validators=[MinValueValidator(0), MaxValueValidator(5)], blank=True, null=True)
-    slug = models.SlugField(max_length=50, verbose_name=_('Slug'), unique=True, blank=True, null=True,
+    slug = models.SlugField(max_length=100, verbose_name=_('Slug'), unique=True, blank=True, null=True,
                             default=f'{title}')
 
     class Meta:
@@ -92,7 +92,7 @@ class ArticleImages(GeneralDateModel):
 
 class ArticleDescription(GeneralDateModel):
     article = models.ForeignKey('LastArticle', on_delete=models.CASCADE, verbose_name=_('Article'))
-    description = models.TextField(verbose_name=_('Description'), null=True, blank=True, max_length=500)
+    description = models.TextField(verbose_name=_('Description'), null=True, blank=True, max_length=2000)
     image = models.ForeignKey(ArticleImages, on_delete=models.CASCADE, verbose_name=_('Image'), null=True, blank=True)
 
     class Meta:

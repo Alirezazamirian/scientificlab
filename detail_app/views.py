@@ -101,3 +101,32 @@ class TicketView(APIView):
             return Response(data={'message': 'ticket was created'}, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserCountView(APIView):
+
+    def get_queryset(self):
+        return User.objects.all()
+
+    def get(self, request):
+        query = self.get_queryset()
+        user_count = query.count()
+        if user_count > 0:
+            bachelor_count = 0
+            master_count = 0
+            phd_count = 0
+            for user in query:
+                if user.degree == 'bachelor':
+                    bachelor_count += 1
+                if user.degree == 'master':
+                    master_count += 1
+                if user.degree == 'phd':
+                    phd_count += 1
+            return Response({
+                'user_count': user_count,
+                'bachelor_count': bachelor_count,
+                'master_count': master_count,
+                'phd_count': phd_count
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'some error occurred!'}, status=status.HTTP_400_BAD_REQUEST)

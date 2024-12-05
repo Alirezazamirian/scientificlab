@@ -7,6 +7,7 @@ urlpatterns = [
     path('score/', views.ScoreView.as_view(), name='ScoreView'),
     path('blog/', views.BlogCategoryView.as_view(), name='BlogView'),
     path('tickets/', views.TicketView.as_view(), name='TicketView'),
+    path('user-count/', views.UserCountView.as_view(), name='UserCountView'),
 ]
 
 
