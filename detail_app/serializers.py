@@ -94,7 +94,9 @@ class BlogCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BlogCategory
-        fields = '__all__'
+        exclude = [
+            'id',
+        ]
 
     def get_blog(self, obj):
         blog = Blog.objects.filter(category=obj)
@@ -116,7 +118,9 @@ class TicketSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ticket
-        fields = '__all__'
+        exclude = [
+            'updated_at'
+        ]
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()

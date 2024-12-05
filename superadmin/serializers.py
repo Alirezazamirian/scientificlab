@@ -52,7 +52,6 @@ class ManageArticleSerializer(serializers.ModelSerializer):
             'description',
             'abbreviation_name',
             'score',
-            'image',
             'sub_head_article',
             'middle_article',
             'create_at_jalali',
