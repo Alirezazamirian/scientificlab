@@ -73,7 +73,14 @@ class BlogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Blog
-        fields = '__all__'
+        fields = [
+            'title',
+            'description',
+            'image',
+            'category',
+            'create_at',
+            'update_at',
+        ]
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
@@ -83,8 +90,6 @@ class BlogSerializer(serializers.ModelSerializer):
 
 
 class BlogCategorySerializer(serializers.ModelSerializer):
-    create_at = serializers.SerializerMethodField(read_only=True)
-    update_at = serializers.SerializerMethodField(read_only=True)
     blog = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -95,11 +100,6 @@ class BlogCategorySerializer(serializers.ModelSerializer):
         blog = Blog.objects.filter(category=obj)
         return BlogSerializer(instance=blog, many=True).data
 
-    def get_create_at(self, obj):
-        return obj.get_create_at_jalali()
-
-    def get_update_at(self, obj):
-        return obj.get_updated_at_jalali()
 
 
 class TicketCategorySerializer(serializers.ModelSerializer):
