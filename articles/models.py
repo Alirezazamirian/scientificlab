@@ -53,7 +53,6 @@ class MiddleArticle(GeneralDateModel):
 class LastArticle(GeneralDateModel):
     title = models.CharField(max_length=50, verbose_name=_('Title'))
     description = models.TextField(verbose_name=_('Description'), max_length=500)
-    image = models.ImageField(verbose_name=_('Image'), upload_to=f'article/{title}', null=True, blank=True)
     sub_head_article = models.ForeignKey(SubHeadArticle, on_delete=models.CASCADE, verbose_name=_('Sub Head Article'),
                                          blank=True, null=True)
     middle_article = models.ForeignKey(MiddleArticle, on_delete=models.CASCADE, verbose_name=_('Middle Article'),
@@ -67,3 +66,33 @@ class LastArticle(GeneralDateModel):
 
     def __str__(self):
         return self.title
+
+
+class ArticleImages(GeneralDateModel):
+    article = models.ForeignKey(LastArticle, on_delete=models.CASCADE, verbose_name=_('Article'))
+    image = models.ImageField(verbose_name=_('image'), upload_to='article/')
+
+    class Meta:
+        verbose_name = _('Article Images')
+        verbose_name_plural = _('Article Images')
+
+    def save(self, *args, **kwargs):
+        if self.article:
+            self.image.field.upload_to = f'article/{self.article.title}'
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.article.title
+
+
+class ArticleDescription(GeneralDateModel):
+    article = models.ForeignKey('LastArticle', on_delete=models.CASCADE, verbose_name=_('Article'))
+    description = models.TextField(verbose_name=_('Description'), null=True, blank=True, max_length=500)
+    image = models.ForeignKey(ArticleImages, on_delete=models.CASCADE, verbose_name=_('Image'), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _('Article Description')
+        verbose_name_plural = _('Article Description')
+
+    def __str__(self):
+        return self.article.title
