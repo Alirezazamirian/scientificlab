@@ -45,79 +45,47 @@ class SubHeadArticleExperimentView(APIView):
 
 
 
-# class MiddleOrLastArticleView(APIView):
-#     serializer_class = MiddleArticleSerializer
-#     permission_classes = [IsAuthenticated]
-#
-#     def get_queryset(self):
-#         sub_head_article_id = self.request.query_params.get('sub_head_article', None)
-#         middle_article_id = self.request.query_params.get('middle_article', None)
-#         if middle_article_id is None:
-#             pass
-#         else:
-#             return LastArticle.objects.filter(middle_article_id=middle_article_id).first()
-#         if sub_head_article_id is None:
-#             return 1
-#         if middle_article := MiddleArticle.objects.filter(sub_head_article_id=sub_head_article_id):
-#             return middle_article
-#         else:
-#             return LastArticle.objects.filter(sub_head_article_id=sub_head_article_id).first()
-#
-#     def get(self, request):
-#         query = self.get_queryset()
-#         if query == 1:
-#             return Response({'Bad Usage': 'insert sub_head_article'}, status=status.HTTP_400_BAD_REQUEST)
-#
-#         if isinstance(query, LastArticle):
-#             try:
-#                 is_free = query.sub_head_article.is_free
-#             except:
-#                 is_free = query.middle_article.sub_head_article.is_free
-#
-#             if is_free:
-#                 serializer = LastArticleSerializer(query, partial=True)
-#                 return Response(serializer.data, status=status.HTTP_200_OK)
-#             elif not is_free:
-#                 if not request.user.is_pay:
-#                     return Response({'error': 'Payment required to access this resource.'}, status=403)
-#                 serializer = LastArticleSerializer(query, partial=True)
-#                 return Response(serializer.data, status=status.HTTP_200_OK)
-#
-#         middle_article = query.first()
-#
-#         if isinstance(middle_article, MiddleArticle) and middle_article.sub_head_article.is_free:
-#             serializer = self.serializer_class(query, many=True)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         elif isinstance(middle_article, MiddleArticle) and not middle_article.sub_head_article.is_free:
-#             if not request.user.is_pay:
-#                 return Response({'error': 'Payment required to access this resource.'}, status=403)
-#             serializer = self.serializer_class(query, many=True)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         else:
-#             return Response({'error': 'some error occurred'}, status=status.HTTP_400_BAD_REQUEST)
-
-
 class LastArticleView(APIView):
     serializer_class = LastArticleSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        return LastArticle.objects.all()
+    def dispatch(self, request, slug):
+        if has_middle := self.get_queryset(slug).middle_article:
+            if has_middle.sub_head_article.is_free:
+                pass
+            elif not has_middle.sub_head_article.is_free:
+                if request.user.is_pay:
+                    pass
+                else:
+                    return Response({'error': 'you are not able to see this doc'}, status=status.HTTP_403_FORBIDDEN)
+
+        if has_sub := self.get_queryset(slug).sub_head_article:
+            if has_sub.is_free:
+                pass
+            elif not has_sub.is_free:
+                if request.user.is_pay:
+                    pass
+                else:
+                    return Response({'error': 'you are not able to see this doc'}, status=status.HTTP_403_FORBIDDEN)
+
+    def get_queryset(self, slug):
+        return LastArticle.objects.get(slug=slug)
 
     def get(self, request, slug):
         return self.get_last_article(slug)
 
     def get_last_article(self, slug):
-        query = self.get_queryset().filter(slug=slug)
-        if not query.exists():
+        query = self.get_queryset(slug)
+        if not query:
             return Response({"detail": "Article not found."}, status=status.HTTP_404_NOT_FOUND)
-        serializer = self.serializer_class(query, many=True)
+        serializer = self.serializer_class(query, partial=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class MiddleArticleView(APIView):
     serializer_class = MiddleArticleSerializer
     permission_classes = [IsAuthenticated]
+
 
     def get(self, request, slug):
         if MiddleArticle.objects.filter(slug=slug).exists():
@@ -126,4 +94,6 @@ class MiddleArticleView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             last_article_view = LastArticleView()
+            if dispatch_response := last_article_view.dispatch(request, slug):
+                return dispatch_response
             return last_article_view.get_last_article(slug)

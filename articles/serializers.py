@@ -95,7 +95,6 @@ class LastArticleSerializer(serializers.ModelSerializer):
     update_at = serializers.SerializerMethodField()
     sub_head_article = serializers.SerializerMethodField()
     middle_article = serializers.SerializerMethodField()
-    images = serializers.SerializerMethodField()
     seperated_description = serializers.SerializerMethodField()
 
     class Meta:
@@ -115,9 +114,6 @@ class LastArticleSerializer(serializers.ModelSerializer):
     def get_middle_article(self, obj):
         if obj.middle_article:
             return MiddleArticleSerializer(obj.middle_article).data
-
-    def get_images(self, obj):
-        return ArticleImagesSerializer(ArticleImages.objects.filter(article=obj), many=True).data
 
     def get_seperated_description(self, obj):
         return ArticleDescriptionSerializer(ArticleDescription.objects.filter(article=obj), many=True).data
