@@ -1,3 +1,4 @@
+import hashlib
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -55,8 +56,6 @@ class UserManager(BaseUserManager):
         return self._create_user(phone, email, password, **extra_fields)
 
 
-
-
 class User(AbstractUser):
     username = None
     first_name = None
@@ -76,6 +75,7 @@ class User(AbstractUser):
     pay_at = models.DateTimeField(blank=True, null=True, verbose_name=_("Pay at"))
     donation = models.IntegerField(default=0, verbose_name=_("Donation"))
     donate_at = models.DateTimeField(blank=True, null=True, verbose_name=_("Donate at"))
+    hash_identifier = models.CharField(verbose_name=_("Hash identifier"), max_length=72, null=True, blank=True)
 
     objects = UserManager()
 
@@ -98,6 +98,10 @@ class User(AbstractUser):
         if self.last_login:
             return datetime2jalali(self.last_login).strftime(f'{DATE_INPUT_FORMATS} - {TIME_INPUT_FORMATS}')
         return None
+
+    def save(self, *args, **kwargs):
+        self.hash_identifier = (hashlib.sha256(self.phone.encode())).hexdigest()
+        super().save(*args, **kwargs)
 
 class Code(models.Model):
     verification_code = models.CharField(max_length=10, verbose_name=_("Verification code"), unique=True, null=True,

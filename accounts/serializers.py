@@ -59,11 +59,38 @@ class LoginSerializer(serializers.Serializer):
 
 
 class AccountManagementSerializer(serializers.ModelSerializer):
-    update_time = serializers.SerializerMethodField(read_only=True)
+    date_joined_jalali = serializers.SerializerMethodField(read_only=True)
+    last_login_jalali = serializers.SerializerMethodField(read_only=True)
+    donate_at_jalali = serializers.SerializerMethodField(read_only=True)
+    new_password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = '__all__'
+        fields = [
+            'password',
+            'new_password',
+            'full_name',
+            'email',
+            'donation',
+            'donate_at_jalali',
+            'date_joined_jalali',
+            'last_login_jalali',
+            'branch',
+            'degree',
+        ]
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'new_password': {'write_only': True},
+            'email': {'required': False, 'read_only': True},
+            'phone': {'required': False, 'read_only': True},
+            'donation': {'required': False, 'read_only': True},
+        }
 
-    def get_update_time(self, obj):
-        return obj.update_time
+    def get_date_joined_jalali(self, obj):
+        return obj.get_joined_at()
+
+    def get_last_login_jalali(self, obj):
+        return obj.get_last_login()
+
+    def get_donate_at_jalali(self, obj):
+        return obj.get_donate_at()

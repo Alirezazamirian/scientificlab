@@ -9,6 +9,7 @@ from utils.verification import code_expiration
 from django.core.mail import send_mail
 from scientificlab.settings import EMAIL_HOST_USER
 from rest_framework.permissions import IsAuthenticated
+import hashlib
 
 
 class LoginView(APIView):
@@ -112,9 +113,39 @@ class LogoutView(APIView):
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-# todo: complete the user profile
-# class AccountManagementView(APIView):
-#     permission_classes = [IsAuthenticated]
-#     serializer_class = AccountManagementSerializer
-#
-#     def get(self, request, slug):
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def change_pass(self, request, user, old_pass, new_pass):
+        if user.check_password(old_pass):
+            user.set_password(new_pass)
+            user.save()
+            return Response({"detail": "Password has been changed."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"detail": "Incorrect password."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AccountManagementView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AccountManagementSerializer
+
+    def get(self, request, hash_id):
+        user = User.objects.filter(hash_identifier=hash_id)
+        if not user:
+            return Response({'error': 'Oops sorry'}, status=status.HTTP_404_NOT_FOUND)
+        ser = self.serializer_class(user.get(), partial=True)
+        return Response(ser.data, status=status.HTTP_200_OK)
+
+    def put(self, request, hash_id):
+        user = User.objects.get(hash_identifier=hash_id)
+        ser = self.serializer_class(user, data=request.data, partial=True)
+        if ser.is_valid():
+            if user_pass := ser.validated_data.get('new_password', None):
+                password = ChangePasswordView()
+                pass_func = password.change_pass(user=user, old_pass=ser.validated_data.get('password', None), request=request
+                                     , new_pass=user_pass)
+                return pass_func
+            ser.save()
+            return Response(ser.data, status=status.HTTP_200_OK)
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
