@@ -9,7 +9,7 @@ from utils.verification import code_expiration
 from django.core.mail import send_mail
 from scientificlab.settings import EMAIL_HOST_USER
 from rest_framework.permissions import IsAuthenticated
-import hashlib
+from django.template.loader import render_to_string
 
 
 class LoginView(APIView):
@@ -26,12 +26,15 @@ class LoginView(APIView):
                 if not user.is_active and code and code_expiration(serializer.validated_data['phone']):
                     code.delete()
                     code = Code.objects.create(user=user, verification_code=randint(10000, 99999))
-                    send_mail("your verification code", f"your code : {code}", EMAIL_HOST_USER, [user.email])
+                    message = render_to_string('verify-code.html', {'code': code})
+                    send_mail("your verification code", message, EMAIL_HOST_USER, [user.email], html_message=message)
                     return Response({'result': 'code has been sent'}, status=status.HTTP_200_OK)
 
                 elif not user.is_active and not code:
                     code = Code.objects.create(user=user, verification_code=randint(10000, 99999))
-                    send_mail("your verification code", f"your code : {code}", EMAIL_HOST_USER, [user.email])
+                    message = render_to_string('verify-code.html', {'code': code})
+                    send_mail("your verification code", message, EMAIL_HOST_USER, [user.email],
+                              html_message=message)
                     return Response({'result': 'code has been sent'}, status=status.HTTP_200_OK)
 
                 elif not user.is_active and code and not code_expiration(serializer.validated_data['phone']):
@@ -73,7 +76,9 @@ class RegisterView(APIView):
                 branch=serializer.validated_data.get('branch', None),
             )
             code = Code.objects.create(user=user, verification_code=randint(10000, 99999))
-            send_mail("your verification code", f"your code : {code}", EMAIL_HOST_USER, [user.email])
+            message = render_to_string('verify-code.html', {'code': code})
+            send_mail("your verification code", message, EMAIL_HOST_USER, [user.email],
+                      html_message=message)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
