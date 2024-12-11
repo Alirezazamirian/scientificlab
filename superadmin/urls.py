@@ -8,25 +8,49 @@ urlpatterns = [
 ]
 
 router = routers.DefaultRouter()
-router.register(r'users', views.ManageUsers)
+router.register(r'users-admin', views.ManageUsers)
 urlpatterns += router.urls
 
 article_router = routers.DefaultRouter()
-article_router.register(r'articles', views.ManageArticles)
+article_router.register(r'articles-admin', views.ManageAllArticles)
 urlpatterns += article_router.urls
 
 ticket_router = routers.DefaultRouter()
-ticket_router.register(r'tickets', views.ManageTickets)
+ticket_router.register(r'tickets-admin', views.ManageTickets)
 urlpatterns += ticket_router.urls
 
 contactus_router = routers.DefaultRouter()
-contactus_router.register(r'contact-us', views.ManageContactUs)
+contactus_router.register(r'contact-us-admin', views.ManageContactUs)
 urlpatterns += contactus_router.urls
 
 blogcat_router = routers.DefaultRouter()
-blogcat_router.register(r'blog-category', views.ManageCategoryBlog)
+blogcat_router.register(r'blog-category-admin', views.ManageCategoryBlog)
 urlpatterns += blogcat_router.urls
 
 blog_router = routers.DefaultRouter()
-blog_router.register(r'contact-us', views.ManageBlog)
+blog_router.register(r'blog-admin', views.ManageBlog)
 urlpatterns += blog_router.urls
+
+sub_article = routers.DefaultRouter()
+sub_article.register(r'sub-article-admin', views.ManageSubArticles)
+urlpatterns += sub_article.urls
+
+middle_article = routers.DefaultRouter()
+middle_article.register(r'middle-article-admin', views.ManageMiddleArticles)
+urlpatterns += middle_article.urls
+
+head_article = routers.DefaultRouter()
+head_article.register(r'head-article-admin', views.ManageHeadArticles)
+urlpatterns += head_article.urls
+
+last_article = routers.DefaultRouter()
+last_article.register(r'last-article-admin', views.ManageLastArticles)
+urlpatterns += last_article.urls
+
+article_desc = routers.DefaultRouter()
+article_desc.register(r'desc-article-admin', views.ManageDescriptionArticles)
+urlpatterns += article_desc.urls
+
+article_image = routers.DefaultRouter()
+article_image.register(r'image-article-admin', views.ManageImageArticles)
+urlpatterns += article_image.urls

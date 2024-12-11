@@ -5,10 +5,12 @@ from rest_framework.views import APIView
 
 from scientificlab.settings import EMAIL_HOST_USER
 from .serializers import (ManageUserSerializer, ManageArticleSerializer, ManageTicketsSerializer,
-                          ManageContactUsSerializer, ManageBlogCategorySerializer, ManageBlogSerializer)
+                          ManageContactUsSerializer, ManageBlogCategorySerializer, ManageBlogSerializer,
+                          ManageSubArticlesSerializer, ManageMiddleArticlesSerializer, ManageHeadArticlesSerializer,
+                          ManageLastArticlesSerializer, ManageImageArticleSerializer, ManageDescriptionArticleSerializer)
 from .permissions import IsSuperAndStuffUser
 from accounts.models import User
-from articles.models import LastArticle
+from articles.models import LastArticle, SubHeadArticle, MiddleArticle, HeadArticle, ArticleImages, ArticleDescription
 from detail_app.models import Ticket, ContactUs, Blog, BlogCategory
 from django.core.mail import send_mail
 
@@ -39,15 +41,33 @@ class ManageUsers(viewsets.ModelViewSet):
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
-class ManageArticles(viewsets.ModelViewSet):
+class ManageAllArticles(viewsets.ModelViewSet):
     queryset = LastArticle.objects.all()
     serializer_class = ManageArticleSerializer
     permission_classes = (IsSuperAndStuffUser,)
     lookup_field = 'pk'
-    http_method_names = ['get', 'put', 'post', 'delete']
+    http_method_names = ['get',]
 
     def list(self, request, *args, **kwargs):
         ser = self.serializer_class(self.queryset, many=True)
+        return Response(ser.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        article = self.get_object()
+        ser = self.serializer_class(article, partial=True)
+        return Response(ser.data, status=status.HTTP_200_OK)
+
+
+class ManageSubArticles(viewsets.ModelViewSet):
+    permission_classes = (IsSuperAndStuffUser,)
+    serializer_class = ManageSubArticlesSerializer
+    queryset = SubHeadArticle.objects.all()
+    lookup_field = 'pk'
+    http_method_names = ['get', 'post', 'put', 'delete']
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.queryset
+        ser = self.serializer_class(queryset, many=True)
         return Response(ser.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
@@ -55,27 +75,99 @@ class ManageArticles(viewsets.ModelViewSet):
         if ser.is_valid():
             ser.save()
             return Response(ser.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, pk=None, *args, **kwargs):
-        article = self.get_object()
-        ser = self.serializer_class(article, data=request.data, partial=True)
+        sub_article = self.get_object()
+        ser = self.serializer_class(sub_article, data=request.data, partial=True)
         if ser.is_valid():
             ser.save()
             return Response(ser.data, status=status.HTTP_200_OK)
-        else:
-            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def retrieve(self, request, pk=None, *args, **kwargs):
-        article = self.get_object()
-        ser = self.serializer_class(article, partial=True)
+
+class ManageMiddleArticles(viewsets.ModelViewSet):
+    permission_classes = (IsSuperAndStuffUser,)
+    serializer_class = ManageMiddleArticlesSerializer
+    queryset = MiddleArticle.objects.all()
+    lookup_field = 'pk'
+    http_method_names = ['get', 'post', 'put', 'delete']
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.queryset
+        ser = self.serializer_class(queryset, many=True)
         return Response(ser.data, status=status.HTTP_200_OK)
 
-    def destroy(self, request, pk=None, *args, **kwargs):
-        article = self.get_object()
-        article.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def create(self, request, *args, **kwargs):
+        ser = self.serializer_class(data=request.data)
+        if ser.is_valid():
+            ser.save()
+            return Response(ser.data, status=status.HTTP_201_CREATED)
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk=None, *args, **kwargs):
+        middle_article = self.get_object()
+        ser = self.serializer_class(middle_article, data=request.data, partial=True)
+        if ser.is_valid():
+            ser.save()
+            return Response(ser.data, status=status.HTTP_200_OK)
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ManageHeadArticles(viewsets.ModelViewSet):
+    permission_classes = (IsSuperAndStuffUser,)
+    serializer_class = ManageHeadArticlesSerializer
+    queryset = HeadArticle.objects.all()
+    lookup_field = 'pk'
+    http_method_names = ['get', 'post', 'put', 'delete']
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.queryset
+        ser = self.serializer_class(queryset, many=True)
+        return Response(ser.data, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+        ser = self.serializer_class(data=request.data)
+        if ser.is_valid():
+            ser.save()
+            return Response(ser.data, status=status.HTTP_201_CREATED)
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk=None, *args, **kwargs):
+        head_article = self.get_object()
+        ser = self.serializer_class(head_article, data=request.data, partial=True)
+        if ser.is_valid():
+            ser.save()
+            return Response(ser.data, status=status.HTTP_200_OK)
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ManageLastArticles(viewsets.ModelViewSet):
+    permission_classes = (IsSuperAndStuffUser,)
+    serializer_class = ManageLastArticlesSerializer
+    queryset = LastArticle.objects.all()
+    lookup_field = 'pk'
+    http_method_names = ['get', 'post', 'put', 'delete']
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.queryset
+        ser = self.serializer_class(queryset, many=True)
+        return Response(ser.data, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+        ser = self.serializer_class(data=request.data)
+        if ser.is_valid():
+            ser.save()
+            return Response(ser.data, status=status.HTTP_201_CREATED)
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk=None, *args, **kwargs):
+        last_article = self.get_object()
+        ser = self.serializer_class(last_article, data=request.data, partial=True)
+        if ser.is_valid():
+            ser.save()
+            return Response(ser.data, status=status.HTTP_200_OK)
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ManageTickets(viewsets.ModelViewSet):
@@ -223,3 +315,60 @@ class ManageBlog(viewsets.ModelViewSet):
         blog = self.get_object()
         ser = self.serializer_class(blog, partial=True)
         return Response(ser.data, status=status.HTTP_200_OK)
+
+
+class ManageDescriptionArticles(viewsets.ModelViewSet):
+    permission_classes = (IsSuperAndStuffUser,)
+    serializer_class = ManageDescriptionArticleSerializer
+    queryset = ArticleDescription.objects.all()
+    lookup_field = 'pk'
+    http_method_names = ['get', 'post', 'put', 'delete']
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.queryset
+        ser = self.serializer_class(queryset, many=True)
+        return Response(ser.data, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+        ser = self.serializer_class(data=request.data)
+        if ser.is_valid():
+            ser.save()
+            return Response(ser.data, status=status.HTTP_201_CREATED)
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk=None, *args, **kwargs):
+        last_article = self.get_object()
+        ser = self.serializer_class(last_article, data=request.data, partial=True)
+        if ser.is_valid():
+            ser.save()
+            return Response(ser.data, status=status.HTTP_200_OK)
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ManageImageArticles(viewsets.ModelViewSet):
+    permission_classes = (IsSuperAndStuffUser,)
+    serializer_class = ManageImageArticleSerializer
+    queryset = ArticleImages.objects.all()
+    lookup_field = 'pk'
+    http_method_names = ['get', 'post', 'put', 'delete']
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.queryset
+        ser = self.serializer_class(queryset, many=True)
+        return Response(ser.data, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+        ser = self.serializer_class(data=request.data)
+        if ser.is_valid():
+            ser.save()
+            return Response(ser.data, status=status.HTTP_201_CREATED)
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk=None, *args, **kwargs):
+        last_article = self.get_object()
+        ser = self.serializer_class(last_article, data=request.data, partial=True)
+        if ser.is_valid():
+            ser.save()
+            return Response(ser.data, status=status.HTTP_200_OK)
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+

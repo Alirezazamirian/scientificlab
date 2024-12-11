@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import HeadArticle, SubHeadArticle, MiddleArticle, LastArticle, ArticleDescription, ArticleImages
-from detail_app.models import Star
 
 
 class HeadArticleSerializer(serializers.ModelSerializer):
@@ -98,7 +97,6 @@ class LastArticleSerializer(serializers.ModelSerializer):
     middle_article = serializers.SerializerMethodField()
     images = serializers.SerializerMethodField()
     seperated_description = serializers.SerializerMethodField()
-    score = serializers.SerializerMethodField()
 
     class Meta:
         model = LastArticle
@@ -124,13 +122,3 @@ class LastArticleSerializer(serializers.ModelSerializer):
     def get_seperated_description(self, obj):
         return ArticleDescriptionSerializer(ArticleDescription.objects.filter(article=obj), many=True).data
 
-    def get_score(self, obj):
-        if obj.score:
-            all_scores = Star.objects.filter(article=obj)
-            all_scores_count = all_scores.count()
-            star = 0
-            if all_scores_count > 1:
-                for score in all_scores:
-                    star = star + score.score
-                star = star / all_scores_count
-                return star

@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from accounts.models import User
 from accounts.serializers import UserSerializer
-from articles.models import LastArticle
-from articles.serializers import SubHeadArticleSerializer, MiddleArticleSerializer
+from articles.models import LastArticle, SubHeadArticle, MiddleArticle, HeadArticle, ArticleImages, ArticleDescription
+from articles.serializers import ArticleDescriptionSerializer
 from detail_app.models import Ticket, ContactUs, BlogCategory, Blog
 from detail_app.serializers import TicketCategorySerializer
 
@@ -40,39 +40,104 @@ class ManageUserSerializer(serializers.ModelSerializer):
 
 
 class ManageArticleSerializer(serializers.ModelSerializer):
-    create_at_jalali = serializers.SerializerMethodField(read_only=True)
-    update_at_jalali = serializers.SerializerMethodField(read_only=True)
+    create_at = serializers.SerializerMethodField(read_only=True)
+    update_at = serializers.SerializerMethodField(read_only=True)
     sub_head_article = serializers.SerializerMethodField(read_only=True)
     middle_article = serializers.SerializerMethodField(read_only=True)
+    head_article = serializers.SerializerMethodField(read_only=True)
+    seperated_description = serializers.SerializerMethodField()
 
     class Meta:
         model = LastArticle
-        fields = [
-            'title',
-            'description',
-            'abbreviation_name',
-            'score',
-            'sub_head_article',
-            'middle_article',
-            'create_at_jalali',
-            'update_at_jalali',
+        exclude = [
+            'updated_at'
         ]
 
-    def get_create_at_jalali(self, obj):
+    def get_create_at(self, obj):
         return obj.get_create_at_jalali()
 
-    def get_update_at_jalali(self, obj):
+    def get_update_at(self, obj):
         return obj.get_updated_at_jalali()
 
     def get_sub_head_article(self, obj):
         if obj.sub_head_article:
-            return SubHeadArticleSerializer(obj.sub_head_article, partial=True).data
+            return ManageSubArticlesSerializer(obj.sub_head_article, partial=True).data
         return None
 
     def get_middle_article(self, obj):
         if obj.middle_article:
-            return MiddleArticleSerializer(obj.middle_article, partial=True).data
+            return ManageMiddleArticlesSerializer(obj.middle_article, partial=True).data
         return None
+
+    def get_head_article(self, obj):
+        if obj.middle_article:
+            return ManageHeadArticlesSerializer(obj.middle_article.sub_head_article.head_article, partial=True).data
+        if obj.sub_head_article:
+            return ManageHeadArticlesSerializer(obj.sub_head_article.head_article, partial=True).data
+        return None
+
+    def get_seperated_description(self, obj):
+        return ArticleDescriptionSerializer(ArticleDescription.objects.filter(article=obj), many=True).data
+
+
+class ManageSubArticlesSerializer(serializers.ModelSerializer):
+    create_at = serializers.SerializerMethodField()
+    update_at = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SubHeadArticle
+        exclude = ['updated_at',]
+
+    def get_create_at(self, obj):
+        return obj.get_create_at_jalali()
+
+    def get_update_at(self, obj):
+        return obj.get_updated_at_jalali()
+
+
+class ManageHeadArticlesSerializer(serializers.ModelSerializer):
+    create_at = serializers.SerializerMethodField()
+    update_at = serializers.SerializerMethodField()
+
+    class Meta:
+        model = HeadArticle
+        exclude = ['updated_at',]
+
+    def get_create_at(self, obj):
+        return obj.get_create_at_jalali()
+
+    def get_update_at(self, obj):
+        return obj.get_updated_at_jalali()
+
+
+class ManageMiddleArticlesSerializer(serializers.ModelSerializer):
+    create_at = serializers.SerializerMethodField()
+    update_at = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MiddleArticle
+        exclude = ['updated_at',]
+
+    def get_create_at(self, obj):
+        return obj.get_create_at_jalali()
+
+    def get_update_at(self, obj):
+        return obj.get_updated_at_jalali()
+
+
+class ManageLastArticlesSerializer(serializers.ModelSerializer):
+    create_at = serializers.SerializerMethodField()
+    update_at = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LastArticle
+        exclude = ['updated_at',]
+
+    def get_create_at(self, obj):
+        return obj.get_create_at_jalali()
+
+    def get_update_at(self, obj):
+        return obj.get_updated_at_jalali()
 
 
 class ManageTicketsSerializer(serializers.ModelSerializer):
@@ -169,6 +234,36 @@ class ManageBlogSerializer(serializers.ModelSerializer):
     class Meta:
         model = Blog
         fields = '__all__'
+
+    def get_create_at(self, obj):
+        return obj.get_create_at_jalali()
+
+    def get_update_at(self, obj):
+        return obj.get_updated_at_jalali()
+
+
+class ManageDescriptionArticleSerializer(serializers.ModelSerializer):
+    create_at = serializers.SerializerMethodField()
+    update_at = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ArticleDescription
+        exclude = ['updated_at',]
+
+    def get_create_at(self, obj):
+        return obj.get_create_at_jalali()
+
+    def get_update_at(self, obj):
+        return obj.get_updated_at_jalali()
+
+
+class ManageImageArticleSerializer(serializers.ModelSerializer):
+    create_at = serializers.SerializerMethodField()
+    update_at = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ArticleImages
+        exclude = ['updated_at',]
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()

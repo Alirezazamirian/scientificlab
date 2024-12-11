@@ -6,7 +6,7 @@ from detail_app.models import Star, LastArticle
 def update_user_score(sender, instance, created, **kwargs):
     if created:
         article = instance.article
-        total_score = Star.objects.all()
+        total_score = Star.objects.filter(article=article)
         total_score_count = total_score.count()
         total_score_value = 0
         for item in total_score:
