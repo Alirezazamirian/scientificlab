@@ -115,6 +115,7 @@ class UserCountView(APIView):
             bachelor_count = 0
             master_count = 0
             phd_count = 0
+            fellowship_count = 0
             for user in query:
                 if user.degree == 'bachelor':
                     bachelor_count += 1
@@ -122,11 +123,14 @@ class UserCountView(APIView):
                     master_count += 1
                 if user.degree == 'phd':
                     phd_count += 1
+                if user.degree == 'fellowship':
+                    fellowship_count += 1
             return Response({
                 'user_count': user_count,
                 'bachelor_count': bachelor_count,
                 'master_count': master_count,
-                'phd_count': phd_count
+                'phd_count': phd_count,
+                'fellowship_count': fellowship_count
             }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'some error occurred!'}, status=status.HTTP_400_BAD_REQUEST)

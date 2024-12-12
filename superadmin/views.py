@@ -236,17 +236,20 @@ class ManageContactUs(viewsets.ModelViewSet):
 
 class UserPayment(APIView):
     permission_classes = (IsSuperAndStuffUser,)
-    queryset = User.objects.filter(is_superuser=False, is_staff=False, is_active=True)
+
+    def get_queryset(self):
+        return User.objects.filter(is_superuser=False, is_staff=False, is_active=True)
 
     def get(self, request):
-        users_count = self.queryset.count()
-        users_paid_count = self.queryset.filter(is_paid=True).count()
+        users = self.get_queryset()
+        users_count = users.count()
+        users_paid_count = users.filter(is_pay=True).count()
         x = 0
-        for payment in self.queryset:
-            x += payment.donation
+        for user in users:
+            x += user.donation
         return Response(data={'paid_users_count': users_paid_count,
                               'full_donation': x,
-                              'not_paid_users_count': users_count - users_paid_count}, status=status.HTTP_200_OK)
+                              'users_count': users_count}, status=status.HTTP_200_OK)
 
 
 class ManageCategoryBlog(viewsets.ModelViewSet):
@@ -371,4 +374,43 @@ class ManageImageArticles(viewsets.ModelViewSet):
             ser.save()
             return Response(ser.data, status=status.HTTP_200_OK)
         return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserBranchCount(APIView):
+    permission_classes = (IsSuperAndStuffUser, )
+
+    def get(self, request):
+        users = User.objects.filter(is_superuser=False, is_staff=False, is_active=True)
+        MD_count = 0
+        dentist_count = 0
+        lab_science_count = 0
+        paramedical_count = 0
+        nurse_count = 0
+        high_educated_MD_count = 0
+        other_count = 0
+        for user in users:
+            if user.branch == 'MD':
+                MD_count += 1
+            elif user.branch == 'dentist':
+                dentist_count += 1
+            elif user.branch == 'lab_science':
+                lab_science_count += 1
+            elif user.branch == 'paramedical':
+                paramedical_count += 1
+            elif user.branch == 'nurse':
+                nurse_count += 1
+            elif user.branch == 'HMD':
+                high_educated_MD_count += 1
+            else:
+                other_count += 1
+        return Response({
+            'MD_count': MD_count,
+            'dentist_count': dentist_count,
+            'lab_science_count': lab_science_count,
+            'paramedical_count': paramedical_count,
+            'nurse_count': nurse_count,
+            'high_educated_MD_count': high_educated_MD_count,
+            'other_count': other_count
+        }, status=status.HTTP_200_OK)
+
 

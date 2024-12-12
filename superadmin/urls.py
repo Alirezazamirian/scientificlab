@@ -5,6 +5,7 @@ from . import views
 
 urlpatterns = [
     path('payment/', views.UserPayment.as_view(), name='UserPayment'),
+    path('user-branch/', views.UserBranchCount.as_view(), name='UserBranchCount'),
 ]
 
 router = routers.DefaultRouter()
