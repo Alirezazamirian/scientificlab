@@ -2,17 +2,19 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from .models import AdminTicket
 from scientificlab.settings import EMAIL_HOST_USER
 from .serializers import (ManageUserSerializer, ManageArticleSerializer, ManageTicketsSerializer,
                           ManageContactUsSerializer, ManageBlogCategorySerializer, ManageBlogSerializer,
                           ManageSubArticlesSerializer, ManageMiddleArticlesSerializer, ManageHeadArticlesSerializer,
-                          ManageLastArticlesSerializer, ManageImageArticleSerializer, ManageDescriptionArticleSerializer)
+                          ManageLastArticlesSerializer, ManageImageArticleSerializer, ManageDescriptionArticleSerializer,
+                          ManageAdminTicketSerializer)
 from .permissions import IsSuperAndStuffUser
 from accounts.models import User
 from articles.models import LastArticle, SubHeadArticle, MiddleArticle, HeadArticle, ArticleImages, ArticleDescription
 from detail_app.models import Ticket, ContactUs, Blog, BlogCategory
 from django.core.mail import send_mail
+import datetime
 
 
 class ManageUsers(viewsets.ModelViewSet):
@@ -414,3 +416,77 @@ class UserBranchCount(APIView):
         }, status=status.HTTP_200_OK)
 
 
+class ManageAdminTickets(viewsets.ModelViewSet):
+    queryset = AdminTicket.objects.all()
+    serializer_class = ManageAdminTicketSerializer
+    permission_classes = (IsSuperAndStuffUser,)
+    lookup_field = 'pk'
+    http_method_names = ['get', 'post', 'put', 'delete']
+
+    def list(self, request, *args, **kwargs):
+        ticket_category = self.request.query_params.get('ticket_category', None)
+        ser = self.serializer_class(self.queryset.filter(ticket__ticket_category=ticket_category), many=True)
+        return Response(ser.data, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+        ser = self.serializer_class(data=request.data)
+        if ser.is_valid():
+            ser.save()
+            return Response(ser.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk=None, *args, **kwargs):
+        ticket = self.get_object()
+        ser = self.serializer_class(data=request.data)
+        if ser.is_valid():
+            ticket.status = ser.validated_data['status']
+            ticket.description = ser.validated_data['description']
+            ticket.ticket.id = ser.validated_data['ticket']
+            ticket.save()
+            return Response(ser.data, status=status.HTTP_200_OK)
+        else:
+            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        ticket = self.get_object()
+        ser = self.serializer_class(ticket, partial=True)
+        return Response(ser.data, status=status.HTTP_200_OK)
+
+class UserPaymentDate(APIView):
+    permission_classes = (IsSuperAndStuffUser,)
+
+    def get_queryset(self):
+        return User.objects.filter(is_superuser=False, is_staff=False, is_active=True, is_pay=True)
+
+    def get(self, request, *args, **kwargs):
+        query = self.get_queryset()
+        now = datetime.datetime.now()
+        one_month_ago = now - datetime.timedelta(days=30)
+        three_month_ago = now - datetime.timedelta(days=90)
+        six_month_ago = now - datetime.timedelta(days=180)
+        one_year_ago = now - datetime.timedelta(days=365)
+        in_one_month = 0
+        in_three_month = 0
+        in_six_month = 0
+        in_one_year = 0
+        befor_year = 0
+        for user in query:
+            aware_user_tz = user.pay_at.replace(tzinfo=None)
+            if aware_user_tz > one_month_ago:
+                in_one_month += 1
+            elif aware_user_tz > three_month_ago and aware_user_tz < one_year_ago:
+                in_three_month += 1
+            elif aware_user_tz > six_month_ago and aware_user_tz < three_month_ago:
+                in_six_month += 1
+            elif aware_user_tz > one_year_ago and aware_user_tz < six_month_ago:
+                in_one_year += 1
+            else:
+                befor_year += 1
+        return Response({
+            'in_one_month': in_one_month,
+            'in_three_month': in_three_month,
+            'in_six_month': in_six_month,
+            'in_one_year': in_one_year,
+            'befor_year': befor_year,
+        }, status=status.HTTP_200_OK)

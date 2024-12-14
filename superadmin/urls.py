@@ -5,6 +5,7 @@ from . import views
 
 urlpatterns = [
     path('payment/', views.UserPayment.as_view(), name='UserPayment'),
+    path('payment-date/', views.UserPaymentDate.as_view(), name='UserPaymentDate'),
     path('user-branch/', views.UserBranchCount.as_view(), name='UserBranchCount'),
 ]
 
@@ -55,3 +56,7 @@ urlpatterns += article_desc.urls
 article_image = routers.DefaultRouter()
 article_image.register(r'image-article-admin', views.ManageImageArticles)
 urlpatterns += article_image.urls
+
+admin_ticket = routers.DefaultRouter()
+admin_ticket.register(r'ticket-admin', views.ManageAdminTickets)
+urlpatterns += admin_ticket.urls

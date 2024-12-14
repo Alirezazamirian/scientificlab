@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import ContactUs, Favorite, Blog, BlogCategory, Star, TicketCategory, Ticket
 from accounts.serializers import UserSerializer
 from articles.serializers import MiddleArticleSerializer, LastArticleSerializer
+from superadmin.serializers import ManageAdminTicketSerializer
+from superadmin.models import AdminTicket
 
 class ContactUsSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField(read_only=True)
@@ -103,6 +105,24 @@ class BlogCategorySerializer(serializers.ModelSerializer):
         return BlogSerializer(instance=blog, many=True).data
 
 
+class AdminTicketSerializer(serializers.ModelSerializer):
+    create_at = serializers.SerializerMethodField(read_only=True)
+    update_at = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = AdminTicket
+        fields = [
+            'create_at',
+            'update_at',
+            'description'
+        ]
+
+    def get_create_at(self, obj):
+        return obj.get_create_at_jalali()
+
+    def get_update_at(self, obj):
+        return obj.get_updated_at_jalali()
+
 
 class TicketCategorySerializer(serializers.ModelSerializer):
 
@@ -114,12 +134,15 @@ class TicketCategorySerializer(serializers.ModelSerializer):
 class TicketSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField(read_only=True)
     update_at = serializers.SerializerMethodField(read_only=True)
-    related_ticket = serializers.SerializerMethodField(read_only=True)
+    parent = serializers.SerializerMethodField(read_only=True)
+    admin_ticket = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Ticket
         exclude = [
-            'updated_at'
+            'updated_at',
+            'user',
+            'id',
         ]
 
     def get_create_at(self, obj):
@@ -128,5 +151,16 @@ class TicketSerializer(serializers.ModelSerializer):
     def get_update_at(self, obj):
         return obj.get_updated_at_jalali()
 
-    def get_related_ticket(self, obj):
-        return TicketSerializer(instance=obj.ticket).data
+    def get_parent(self, obj):
+        if obj.parent:
+            return TicketSerializer(instance=obj.parent).data
+        else:
+            return None
+
+    def get_admin_ticket(self, obj):
+        admin_ticket = AdminTicket.objects.filter(ticket=obj)
+        if admin_ticket.exists():
+            for admin in admin_ticket:
+                return AdminTicketSerializer(instance=admin).data
+        else:
+            return None

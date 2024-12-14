@@ -76,6 +76,13 @@ class Star(models.Model):
 class TicketCategory(models.Model):
     type = models.CharField(verbose_name=_('Type'), max_length=40)
 
+    class Meta:
+        verbose_name = _('Ticket Category')
+        verbose_name_plural = _('Ticket Categories')
+
+    def __str__(self):
+        return f'{self.type}'
+
 
 class Ticket(GeneralDateModel):
     title = models.CharField(verbose_name=_('Title'), max_length=100)

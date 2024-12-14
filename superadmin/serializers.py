@@ -4,8 +4,7 @@ from accounts.serializers import UserSerializer
 from articles.models import LastArticle, SubHeadArticle, MiddleArticle, HeadArticle, ArticleImages, ArticleDescription
 from articles.serializers import ArticleDescriptionSerializer
 from detail_app.models import Ticket, ContactUs, BlogCategory, Blog
-from detail_app.serializers import TicketCategorySerializer
-
+from .models import AdminTicket
 
 class ManageUserSerializer(serializers.ModelSerializer):
     date_joined_jalali = serializers.SerializerMethodField(read_only=True)
@@ -144,21 +143,10 @@ class ManageTicketsSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField(read_only=True)
     update_at = serializers.SerializerMethodField(read_only=True)
     user = serializers.SerializerMethodField(read_only=True)
-    ticket_category = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Ticket
-        fields = [
-            'id',
-            'title',
-            'description',
-            'user',
-            'create_at',
-            'update_at',
-            'ticket_category',
-            'is_appropriate',
-            'parent',
-        ]
+        exclude = ['updated_at',]
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
@@ -167,10 +155,7 @@ class ManageTicketsSerializer(serializers.ModelSerializer):
         return obj.get_updated_at_jalali()
 
     def get_user(self, obj):
-        return UserSerializer(obj.user, partial=True).data
-
-    def get_ticket_category(self, obj):
-        return TicketCategorySerializer(obj.ticket_category, partial=True).data
+        return ManageUserSerializer(obj.user).data
 
     def get_parent(self, obj):
         return ManageTicketsSerializer(obj.parent, partial=True).data
@@ -270,3 +255,24 @@ class ManageImageArticleSerializer(serializers.ModelSerializer):
 
     def get_update_at(self, obj):
         return obj.get_updated_at_jalali()
+
+
+class ManageAdminTicketSerializer(serializers.ModelSerializer):
+    create_at = serializers.SerializerMethodField(read_only=True)
+    update_at = serializers.SerializerMethodField(read_only=True)
+    ticket = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = AdminTicket
+        exclude = ['updated_at',]
+
+    def get_create_at(self, obj):
+        return obj.get_create_at_jalali()
+
+
+    def get_update_at(self, obj):
+        return obj.get_updated_at_jalali()
+
+
+    def get_ticket(self, obj):
+        return ManageTicketsSerializer(obj.ticket, partial=True).data
