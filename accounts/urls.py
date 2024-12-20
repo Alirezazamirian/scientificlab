@@ -6,5 +6,5 @@ urlpatterns = [
     path('login/', views.LoginView.as_view(), name='LoginView'),
     path('verification/', views.EmailVerificationView.as_view(), name='EmailVerificationView'),
     path('logout/', views.LogoutView.as_view(), name='LogoutView'),
-    path('user/<str:hash_id>/', views.AccountManagementView.as_view(), name='AccountManagementView'),
+    path('user/', views.AccountManagementView.as_view(), name='AccountManagementView'),
 ]

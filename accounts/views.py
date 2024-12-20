@@ -135,15 +135,16 @@ class AccountManagementView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = AccountManagementSerializer
 
-    def get(self, request, hash_id):
-        user = User.objects.filter(hash_identifier=hash_id)
-        if not user:
-            return Response({'error': 'Oops sorry'}, status=status.HTTP_404_NOT_FOUND)
-        ser = self.serializer_class(user.get(), partial=True)
+    def get_queryset(self, request):
+        return User.objects.get(id=request.user.id)
+
+    def get(self, request):
+        user = self.get_queryset(request)
+        ser = self.serializer_class(user, partial=True)
         return Response(ser.data, status=status.HTTP_200_OK)
 
-    def put(self, request, hash_id):
-        user = User.objects.get(hash_identifier=hash_id)
+    def put(self, request):
+        user = self.get_queryset(request)
         ser = self.serializer_class(user, data=request.data, partial=True)
         if ser.is_valid():
             if user_pass := ser.validated_data.get('new_password', None):
