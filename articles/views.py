@@ -12,7 +12,7 @@ class HeadArticleView(APIView):
 
     def get(self, request):
         serializer = HeadArticle.objects.all()
-        ser_data = self.serializer_class(serializer, many=True)
+        ser_data = self.serializer_class(serializer, many=True, context={'request': request, 'instance': serializer})
         return Response(ser_data.data, status=status.HTTP_200_OK)
 
 
@@ -26,8 +26,11 @@ class SubHeadArticleTestView(APIView):
 
     def get(self, request, slug):
         query = self.get_queryset().filter(slug=slug)
-        serializer = self.serializer_class(query, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if query.exists():
+            serializer = self.serializer_class(query, many=True, context={'request': request, 'instance': query})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class SubHeadArticleExperimentView(APIView):
@@ -40,8 +43,11 @@ class SubHeadArticleExperimentView(APIView):
 
     def get(self, request, slug):
         query = self.get_queryset().filter(slug=slug)
-        serializer = self.serializer_class(query, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if query.exists():
+            serializer = self.serializer_class(query, many=True, context={'request': request, 'instance': query})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 
@@ -49,27 +55,19 @@ class LastArticleView(APIView):
     serializer_class = LastArticleSerializer
     permission_classes = [IsAuthenticated]
 
-    def dispatch(self, request, slug):
-        if has_middle := self.get_queryset(slug).middle_article:
-            if has_middle.sub_head_article.is_free:
-                pass
-            elif not has_middle.sub_head_article.is_free:
-                if request.user.is_pay:
-                    pass
-                else:
-                    return Response({'error': 'you are not able to see this doc'}, status=status.HTTP_403_FORBIDDEN)
 
-        if has_sub := self.get_queryset(slug).sub_head_article:
-            if has_sub.is_free:
-                pass
-            elif not has_sub.is_free:
-                if request.user.is_pay:
-                    pass
-                else:
-                    return Response({'error': 'you are not able to see this doc'}, status=status.HTTP_403_FORBIDDEN)
+    def validation(self, request, slug):
+        if self.get_queryset(slug=slug).is_free or (not self.get_queryset(slug=slug).is_free and request.user.is_pay):
+            pass
+        else:
+            return Response({'error': 'you are not able to see this doc'}, status=status.HTTP_403_FORBIDDEN)
 
     def get_queryset(self, slug):
-        return LastArticle.objects.get(slug=slug)
+        last_article = LastArticle.objects.filter(slug=slug)
+        if last_article.exists():
+            return last_article.first()
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
     def get(self, request, slug):
         return self.get_last_article(slug)
@@ -88,12 +86,12 @@ class MiddleArticleView(APIView):
 
 
     def get(self, request, slug):
-        if MiddleArticle.objects.filter(slug=slug).exists():
-            query = MiddleArticle.objects.filter(slug=slug)
+        query = MiddleArticle.objects.filter(slug=slug)
+        if query.exists():
             serializer = self.serializer_class(query, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             last_article_view = LastArticleView()
-            if dispatch_response := last_article_view.dispatch(request, slug):
-                return dispatch_response
+            if validation_response := last_article_view.validation(request, slug):
+                return validation_response
             return last_article_view.get_last_article(slug)

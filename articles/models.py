@@ -24,7 +24,6 @@ class HeadArticle(GeneralDateModel):
 class SubHeadArticle(GeneralDateModel):
     title = models.CharField(max_length=100, verbose_name=_('Title'))
     description = models.TextField(verbose_name=_('Description'), null=True, blank=True, max_length=500)
-    is_free = models.BooleanField(default=False, verbose_name=_('Is Free'))
     type = models.CharField(max_length=50, verbose_name=_('Type'), choices=ISFREE_ARTICLE)
     head_article = models.ForeignKey(HeadArticle, on_delete=models.CASCADE, verbose_name=_('Head Article'))
     slug = models.SlugField(max_length=100, verbose_name=_('Slug'), unique=True, blank=True, null=True, default=f'{title}')
@@ -64,6 +63,7 @@ class LastArticle(GeneralDateModel):
     score = models.FloatField(verbose_name=_('Score'), default=0, validators=[MinValueValidator(0), MaxValueValidator(5)], blank=True, null=True)
     slug = models.SlugField(max_length=100, verbose_name=_('Slug'), unique=True, blank=True, null=True,
                             default=f'{title}')
+    is_free = models.BooleanField(default=False, verbose_name=_('Is Free'))
 
     class Meta:
         verbose_name = _('Last Article')
