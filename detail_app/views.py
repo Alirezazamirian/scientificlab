@@ -5,8 +5,8 @@ from rest_framework.views import APIView
 
 from accounts.models import User
 from .serializers import (ContactUsSerializer, FavouriteSerializer, ScoreSerializer, BlogSerializer,
-                          BlogCategorySerializer, TicketSerializer)
-from .models import ContactUs, Favorite, Star, BlogCategory, Blog, Ticket
+                          BlogCategorySerializer, TicketSerializer, TicketCategorySerializer)
+from .models import ContactUs, Favorite, Star, BlogCategory, Blog, Ticket, TicketCategory
 
 
 class ContactUsView(APIView):
@@ -101,6 +101,19 @@ class TicketView(APIView):
             return Response(data={'message': 'ticket was created'}, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TicketCategoryView(APIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = TicketCategorySerializer
+
+    def get_queryset(self):
+        return TicketCategory.objects.all()
+
+    def get(self, request):
+        cat_ticket = self.get_queryset()
+        serializer = self.serializer_class(cat_ticket, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UserCountView(APIView):
