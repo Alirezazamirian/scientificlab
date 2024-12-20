@@ -198,18 +198,10 @@ class ManageContactUsSerializer(serializers.ModelSerializer):
 
 
 class ManageBlogCategorySerializer(serializers.ModelSerializer):
-    create_at = serializers.SerializerMethodField(read_only=True)
-    update_at = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = BlogCategory
         fields = '__all__'
-
-    def get_create_at(self, obj):
-        return obj.get_create_at_jalali()
-
-    def get_update_at(self, obj):
-        return obj.get_updated_at_jalali()
 
 
 class ManageBlogSerializer(serializers.ModelSerializer):
