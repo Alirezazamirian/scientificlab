@@ -177,30 +177,16 @@ class ManageTickets(viewsets.ModelViewSet):
     serializer_class = ManageTicketsSerializer
     permission_classes = (IsSuperAndStuffUser,)
     lookup_field = 'pk'
-    http_method_names = ['get', 'put',]
+    http_method_names = ['get',]
 
     def list(self, request, *args, **kwargs):
         ticket_category = self.request.query_params.get('ticket_category', None)
-        ser = self.serializer_class(self.queryset.filter(ticket_category=ticket_category), many=True)
-        return Response(ser.data, status=status.HTTP_200_OK)
-
-    def update(self, request, pk=None, *args, **kwargs):
-        ticket = self.get_object()
-        ser = self.serializer_class(data=request.data)
-        if ser.is_valid():
-            Ticket.objects.create(
-                parent_id=ticket.id,
-                title=ser.data['title'],
-                description=ser.data['description'],
-                user_id=self.request.user.id,
-                ticket_category=kwargs['ticket_category'],
-                is_appropriate=True,
-            )
-            ticket.is_appropriate = True
-            ticket.save()
-            return Response(ser.data, status=status.HTTP_200_OK)
+        not_answered_ticket = self.queryset.filter(is_answered=False).count()
+        if ticket_category:
+            ser = self.serializer_class(self.queryset.filter(ticket_category=ticket_category), many=True)
         else:
-            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+            ser = self.serializer_class(self.queryset, many=True)
+        return Response({'result': ser.data, 'not_answered_count': not_answered_ticket}, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
         ticket = self.get_object()
@@ -425,12 +411,17 @@ class ManageAdminTickets(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         ticket_category = self.request.query_params.get('ticket_category', None)
-        ser = self.serializer_class(self.queryset.filter(ticket__ticket_category=ticket_category), many=True)
-        return Response(ser.data, status=status.HTTP_200_OK)
+        if ticket_category:
+            ser = self.serializer_class(self.queryset.filter(ticket__ticket_category=ticket_category), many=True)
+        else:
+            ser = self.serializer_class(self.queryset, many=True)
+        return Response({ser.data}, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         ser = self.serializer_class(data=request.data)
         if ser.is_valid():
+            user_ticket = ser.validated_data['ticket']
+            Ticket.objects.filter(id=user_ticket).update(is_answered=True)
             ser.save()
             return Response(ser.data, status=status.HTTP_201_CREATED)
         else:

@@ -58,5 +58,5 @@ article_image.register(r'image-article-admin', views.ManageImageArticles)
 urlpatterns += article_image.urls
 
 admin_ticket = routers.DefaultRouter()
-admin_ticket.register(r'ticket-admin', views.ManageAdminTickets)
+admin_ticket.register(r'ticket-response-admin', views.ManageAdminTickets)
 urlpatterns += admin_ticket.urls
