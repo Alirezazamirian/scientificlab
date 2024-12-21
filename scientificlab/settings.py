@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'jalali_date',
     'drf_spectacular',
+    'drf_yasg',
     # internal apps
     'accounts',
     'utils',
