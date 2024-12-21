@@ -20,10 +20,10 @@ class HeadArticleSerializer(serializers.ModelSerializer):
         ]
 
     def __init__(self, *args, **kwargs):
-        instance = kwargs['context']['instance']
+        # instance = kwargs['context']['instance']
         request = kwargs.pop('context', {}).get('request', None)
         self.request = request
-        self.instance = instance
+        # self.instance = instance
         super().__init__(*args, **kwargs)
 
 
@@ -35,11 +35,11 @@ class HeadArticleSerializer(serializers.ModelSerializer):
 
     def get_sub_test(self, obj):
         sub_test = SubHeadArticle.objects.filter(head_article=obj, type='Test')
-        return SubHeadArticleSerializer(sub_test, many=True, context={'request': self.request, 'instance':self.instance}).data
+        return SubHeadArticleSerializer(sub_test, many=True, context={'request': self.request}).data
 
     def get_sub_experiment(self, obj):
         sub_experiment = SubHeadArticle.objects.filter(head_article=obj, type='Experiment')
-        return SubHeadArticleSerializer(sub_experiment, many=True, context={'request': self.request, 'instance':self.instance}).data
+        return SubHeadArticleSerializer(sub_experiment, many=True, context={'request': self.request}).data
 
 
 class SubHeadArticleSerializer(serializers.ModelSerializer):
@@ -53,10 +53,10 @@ class SubHeadArticleSerializer(serializers.ModelSerializer):
         exclude = ['updated_at', 'id']
 
     def __init__(self, *args, **kwargs):
-        instance = kwargs['context']['instance']
+        # instance = kwargs['context']['instance']
         request = kwargs.pop('context', {}).get('request', None)
         self.request = request
-        self.instance = instance
+        # self.instance = instance
         super().__init__(*args, **kwargs)
         if request.path == '/articles/':
             self.fields.pop('last_article', None)
@@ -71,13 +71,13 @@ class SubHeadArticleSerializer(serializers.ModelSerializer):
 
     def get_middle_article(self, obj):
         middle_article = MiddleArticle.objects.filter(sub_head_article=obj)
-        return MiddleArticleSerializer(middle_article, many=True, context={'request': self.request, 'instance': self.instance}).data
+        return MiddleArticleSerializer(middle_article, many=True, context={'request': self.request}).data
 
     def get_last_article(self, obj):
         last_article = LastArticle.objects.filter(sub_head_article=obj)
         for article in last_article:
             if article.is_free or (not article.is_free and self.request.user.is_pay):
-                return LastArticleSerializer(last_article, many=True, context={'request': self.request, 'instance': self.instance}).data
+                return LastArticleSerializer(last_article, many=True, context={'request': self.request}).data
             else:
                 return {'error': 'payment error!'}
 
@@ -91,14 +91,14 @@ class MiddleArticleSerializer(serializers.ModelSerializer):
         exclude = ['updated_at', 'id']
 
     def __init__(self, *args, **kwargs):
-        instance = kwargs['context']['instance']
+        # instance = kwargs['context']['instance']
         request = kwargs.pop('context', {}).get('request', None)
         print(request.path)
         self.request = request
-        self.instance = instance
+        # self.instance = instance
         super().__init__(*args, **kwargs)
-        if request.path == f'/articles/test/{instance.first().slug}/' or request.path == f'/articles/experiment/{instance.first().slug}/':
-            self.fields.pop('last_article', None)
+        # if request.path == f'/articles/test/{instance.first().slug}/' or request.path == f'/articles/experiment/{instance.first().slug}/':
+        #     self.fields.pop('last_article', None)
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
@@ -110,7 +110,7 @@ class MiddleArticleSerializer(serializers.ModelSerializer):
         last_article = LastArticle.objects.filter(middle_article=obj)
         for article in last_article:
             if article.is_free or (not article.is_free and self.request.user.is_pay):
-                return LastArticleSerializer(last_article, many=True, context={'request': self.request, 'instance': self.instance}).data
+                return LastArticleSerializer(last_article, many=True, context={'request': self.request}).data
             else:
                 return {'error': 'payment error!'}
 
