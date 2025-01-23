@@ -94,3 +94,29 @@ class AccountManagementSerializer(serializers.ModelSerializer):
 
     def get_donate_at_jalali(self, obj):
         return obj.get_donate_at()
+
+class ForgetPassSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=False, write_only=True)
+    code = serializers.IntegerField(required=False, write_only=True)
+    password = serializers.CharField(required=False, write_only=True)
+    confirm_password = serializers.CharField(required=False, write_only=True)
+
+    class Meta:
+        model = User
+        fields = ['email', 'password', 'confirm_password', 'code']
+
+    def validate(self, attrs):
+        password = attrs.get('password', None)
+        confirm_password = attrs.get('confirm_password', None)
+        if sum(1 for field in ['email', 'code'] if field in attrs) != 1:
+            if 'code' in attrs and 'email' in attrs:
+                raise serializers.ValidationError(
+                    "Exactly one of the fields 'email' and 'code' must be provided.")
+            if 'password' not in attrs or 'confirm_password' not in attrs:
+                raise serializers.ValidationError(
+                    "Exactly both of the fields 'password' and 'confirm_password' must be provided.")
+
+        if password and confirm_password:
+            if len(attrs['confirm_password']) < 8 or len(attrs['password']) < 8:
+                return 1
+        return attrs

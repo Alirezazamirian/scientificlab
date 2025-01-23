@@ -101,3 +101,19 @@ class ArticleDescription(GeneralDateModel):
 
     def __str__(self):
         return self.article.title
+
+class HeadArticleImages(GeneralDateModel):
+    head_article = models.ForeignKey(HeadArticle, on_delete=models.CASCADE, verbose_name=_('Head Article'))
+    image = models.ImageField(verbose_name=_('image'), upload_to='head_article/')
+
+    class Meta:
+        verbose_name = _('Head article Images')
+        verbose_name_plural = _('Head article Images')
+
+    def save(self, *args, **kwargs):
+        if self.head_article:
+            self.image.field.upload_to = f'head_article/{self.head_article.title}'
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.head_article.title

@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from accounts.models import User, Code
-from accounts.serializers import UserSerializer, EmailSerializer, LoginSerializer, AccountManagementSerializer
+from accounts.serializers import UserSerializer, EmailSerializer, LoginSerializer, AccountManagementSerializer, ForgetPassSerializer
 from utils.verification import code_expiration
 from django.core.mail import send_mail
 from scientificlab.settings import EMAIL_HOST_USER
@@ -155,3 +155,60 @@ class AccountManagementView(APIView):
             ser.save()
             return Response(ser.data, status=status.HTTP_200_OK)
         return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ForgetPassVerifyView(APIView):
+    serializer_class = ForgetPassSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            user = User.objects.filter(email=serializer.validated_data['email']).first()
+            if not user:
+                return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+            else:
+                code = Code.objects.filter(user=user).last()
+                if code:
+                    code.delete()
+                code = Code.objects.create(user=user, verification_code=randint(10000, 99999))
+                message = render_to_string('verify-code.html', {'code': code})
+                send_mail("your verification code", message, EMAIL_HOST_USER, [user.email], html_message=message)
+                return Response({'result': 'code has been sent'}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        query_param = request.query_params.get('email', None)
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            code = serializer.validated_data['code']
+            user = User.objects.filter(email=query_param).first()
+            if code == int(Code.objects.filter(user=user).first().verification_code):
+                return Response({"detail": "Correct code."}, status=status.HTTP_200_OK)
+            else:
+                return Response({"detail": "Verification code is incorrect!"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ForgetPassView(APIView):
+    serializer_class = ForgetPassSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        email = request.query_params.get('email', None)
+        if email == None:
+            return Response({'error': 'email is required as parameter.'}, status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid():
+            if serializer.validated_data == 1:
+                return Response({"detail": "Password must contain at least 8 words!"}, status=status.HTTP_400_BAD_REQUEST)
+            password = serializer.validated_data['password']
+            confirm_password = serializer.validated_data['confirm_password']
+            if password == confirm_password:
+                user = User.objects.filter(email=email).first()
+                user.is_active = True
+                user.set_password(password)
+                user.save()
+                return Response({"detail": "Password has been changed."}, status=status.HTTP_200_OK)
+            else:
+                return Response({"detail": "Incorrect password match."}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
