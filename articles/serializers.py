@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import HeadArticle, SubHeadArticle, MiddleArticle, LastArticle, ArticleDescription, ArticleImages
+from .models import HeadArticle, SubHeadArticle, MiddleArticle, LastArticle, ArticleDescription, ArticleImages, HeadArticleImages
 
 
 class HeadArticleSerializer(serializers.ModelSerializer):
@@ -7,6 +7,7 @@ class HeadArticleSerializer(serializers.ModelSerializer):
     update_at = serializers.SerializerMethodField()
     sub_test = serializers.SerializerMethodField()
     sub_experiment = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = HeadArticle
@@ -15,6 +16,7 @@ class HeadArticleSerializer(serializers.ModelSerializer):
             'description',
             'create_at',
             'update_at',
+            'image',
             'sub_test',
             'sub_experiment',
         ]
@@ -40,6 +42,10 @@ class HeadArticleSerializer(serializers.ModelSerializer):
     def get_sub_experiment(self, obj):
         sub_experiment = SubHeadArticle.objects.filter(head_article=obj, type='Experiment')
         return SubHeadArticleSerializer(sub_experiment, many=True).data
+
+    def get_image(self, obj):
+        image = HeadArticleImages.objects.get(head_article=obj)
+        return HeadArticleImagesSerializer(image, partial=True).data
 
 
 class SubHeadArticleSerializer(serializers.ModelSerializer):
@@ -122,6 +128,20 @@ class ArticleImagesSerializer(serializers.ModelSerializer):
     class Meta:
         model = ArticleImages
         exclude = ['updated_at', 'id', 'article']
+
+    def get_create_at(self, obj):
+        return obj.get_create_at_jalali()
+
+    def get_update_at(self, obj):
+        return obj.get_updated_at_jalali()
+
+class HeadArticleImagesSerializer(serializers.ModelSerializer):
+    create_at = serializers.SerializerMethodField()
+    update_at = serializers.SerializerMethodField()
+
+    class Meta:
+        model = HeadArticleImages
+        exclude = ['updated_at', 'id', 'head_article']
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
