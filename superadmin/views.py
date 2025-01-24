@@ -416,7 +416,7 @@ class ManageAdminTickets(viewsets.ModelViewSet):
             ser = self.serializer_class(self.queryset.filter(ticket__ticket_category=ticket_category), many=True)
         else:
             ser = self.serializer_class(self.queryset, many=True)
-        return Response({ser.data}, status=status.HTTP_200_OK)
+        return Response(data=ser.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         ser = self.serializer_class(data=request.data)
