@@ -15,7 +15,8 @@ from articles.models import LastArticle, SubHeadArticle, MiddleArticle, HeadArti
 from detail_app.models import Ticket, ContactUs, Blog, BlogCategory
 from django.core.mail import send_mail
 import datetime
-
+from django.views.decorators.cache import never_cache
+from django.utils.decorators import method_decorator
 
 class ManageUsers(viewsets.ModelViewSet):
     queryset = User.objects.filter(is_superuser=False, is_staff=False)
@@ -444,6 +445,7 @@ class ManageAdminTickets(viewsets.ModelViewSet):
         ser = self.serializer_class(ticket, partial=True)
         return Response(ser.data, status=status.HTTP_200_OK)
 
+
 class UserPaymentDate(APIView):
     permission_classes = (IsSuperAndStuffUser,)
 
@@ -480,4 +482,65 @@ class UserPaymentDate(APIView):
             'in_six_month': in_six_month,
             'in_one_year': in_one_year,
             'befor_year': befor_year,
+        }, status=status.HTTP_200_OK)
+
+
+@method_decorator(never_cache, name='dispatch')
+class UserDonations(APIView):
+    permission_classes = (IsSuperAndStuffUser,)
+
+    def get_queryset(self):
+        return User.objects.filter(is_superuser=False, is_staff=False, is_active=True, donation__gt=0)
+
+    def get(self, request, *args, **kwargs):
+        query = self.get_queryset()
+        if not query:
+            return Response(data={'error': 'No one has donated yet!'}, status=status.HTTP_204_NO_CONTENT)
+        now = datetime.datetime.now()
+        one_month_ago = now - datetime.timedelta(days=30)
+        three_month_ago = now - datetime.timedelta(days=90)
+        six_month_ago = now - datetime.timedelta(days=180)
+        one_year_ago = now - datetime.timedelta(days=365)
+        in_one_month = 0
+        in_one_month_amount = 0
+        in_three_month = 0
+        in_three_month_amount = 0
+        in_six_month = 0
+        in_six_month_amount = 0
+        in_one_year = 0
+        in_one_year_amount = 0
+        befor_year = 0
+        befor_year_amount = 0
+        for user in query:
+            aware_user_tz = user.donate_at.replace(tzinfo=None)
+            if aware_user_tz > one_month_ago:
+                in_one_month += 1
+                in_one_month_amount += user.donation
+            elif aware_user_tz > three_month_ago and aware_user_tz < one_year_ago:
+                in_three_month += 1
+                in_three_month_amount += user.donation
+            elif aware_user_tz > six_month_ago and aware_user_tz < three_month_ago:
+                in_six_month += 1
+                in_six_month_amount += user.donation
+            elif aware_user_tz > one_year_ago and aware_user_tz < six_month_ago:
+                in_one_year += 1
+                in_one_year_amount += user.donation
+            else:
+                befor_year += 1
+                befor_year_amount += user.donation
+        return Response(data={
+            'count': {
+                'in_one_month': in_one_month,
+                'in_three_month': in_three_month,
+                'in_six_month': in_six_month,
+                'in_one_year': in_one_year,
+                'befor_year': befor_year,
+            },
+            'amount': {
+                'in_one_month': in_one_month_amount,
+                'in_three_month': in_three_month_amount,
+                'in_six_month': in_six_month_amount,
+                'in_one_year': in_one_year_amount,
+                'befor_year': befor_year_amount,
+            }
         }, status=status.HTTP_200_OK)

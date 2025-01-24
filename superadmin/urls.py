@@ -7,6 +7,7 @@ urlpatterns = [
     path('payment/', views.UserPayment.as_view(), name='UserPayment'),
     path('payment-date/', views.UserPaymentDate.as_view(), name='UserPaymentDate'),
     path('user-branch/', views.UserBranchCount.as_view(), name='UserBranchCount'),
+    path('user-donation-count/', views.UserDonations.as_view(), name='UserDonations'),
 ]
 
 router = routers.DefaultRouter()

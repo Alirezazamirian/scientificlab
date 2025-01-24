@@ -2,11 +2,12 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+import datetime
 from accounts.models import User
 from .serializers import (ContactUsSerializer, FavouriteSerializer, ScoreSerializer, BlogSerializer,
-                          BlogCategorySerializer, TicketSerializer, TicketCategorySerializer)
-from .models import ContactUs, Favorite, Star, BlogCategory, Blog, Ticket, TicketCategory
+                          BlogCategorySerializer, TicketSerializer, TicketCategorySerializer,
+                          TicketConversationSerializer, DonationSerializer)
+from .models import ContactUs, Favorite, Star, BlogCategory, Blog, Ticket, TicketCategory, TicketConversation
 
 
 class ContactUsView(APIView):
@@ -78,14 +79,9 @@ class BlogCategoryView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class TicketView(APIView):
+class TicketPost(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = TicketSerializer
-    queryset = Ticket.objects.all()
-
-    def get(self, request):
-        serializer = self.serializer_class(self.queryset.filter(user=self.request.user), many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         parent_id = self.request.query_params.get('parent_id', None)
@@ -114,6 +110,36 @@ class TicketCategoryView(APIView):
         cat_ticket = self.get_queryset()
         serializer = self.serializer_class(cat_ticket, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class TicketConversationListView(APIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = TicketConversationSerializer
+
+    def get_queryset(self):
+        return TicketConversation.objects.all()
+
+    def get(self, request):
+        if self.get_queryset().exists():
+            serializer = self.serializer_class(self.get_queryset().filter(user=self.request.user), many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'there is no conversation!'}, status=status.HTTP_204_NO_CONTENT)
+
+
+class TicketConversationPartialView(APIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = TicketConversationSerializer
+
+    def get_queryset(self):
+        return TicketConversation.objects.filter(user=self.request.user)
+
+    def get(self, request, pk):
+        if self.get_queryset().exists():
+            serializer = self.serializer_class(self.get_queryset().filter(id=pk), many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'there is no conversation!'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class UserCountView(APIView):
@@ -147,3 +173,20 @@ class UserCountView(APIView):
             }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'some error occurred!'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DonatePost(APIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = DonationSerializer
+
+    def post(self, request):
+        ser = self.serializer_class(data=request.data, partial=True)
+        if ser.is_valid():
+            # todo: take user to payment gateway
+            user = User.objects.get(id=request.user.id)
+            user.donation += ser.validated_data['donation']
+            user.donate_at = datetime.datetime.now()
+            user.save()
+            return Response({'message': f'donation amount : {ser.validated_data['donation']}'}, status=status.HTTP_200_OK)
+        else:
+            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)

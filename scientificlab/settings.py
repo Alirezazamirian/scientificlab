@@ -171,3 +171,9 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = "labscience@autoplanner.ir"
 EMAIL_HOST_PASSWORD = "Labscience@root"
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}

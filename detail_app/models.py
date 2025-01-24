@@ -87,7 +87,6 @@ class TicketCategory(models.Model):
 class Ticket(GeneralDateModel):
     title = models.CharField(verbose_name=_('Title'), max_length=100)
     description = models.TextField(verbose_name=_('Description'), max_length=500)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('User'))
     is_answered = models.BooleanField(verbose_name=_('Is Appropriate'), default=False)
     parent = models.ForeignKey('Ticket', verbose_name=_('Ticket'), on_delete=models.CASCADE, null=True, blank=True)
     ticket_category = models.ForeignKey('TicketCategory', on_delete=models.CASCADE, verbose_name=_('Ticket Category'))
@@ -97,4 +96,16 @@ class Ticket(GeneralDateModel):
         verbose_name_plural = _('Tickets')
 
     def __str__(self):
-        return f'{self.title} --- {self.user.full_name}'
+        return f'{self.title}'
+
+class TicketConversation(GeneralDateModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('User'))
+    ticket = models.ForeignKey(Ticket, verbose_name=_('Ticket'), on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = _('Ticket Conversation')
+        verbose_name_plural = _('Ticket Conversations')
+
+    def __str__(self):
+        return f'{self.ticket.ticket_category.type} --- {self.user.phone} --- {self.user.email}'
+

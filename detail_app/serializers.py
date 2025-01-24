@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ContactUs, Favorite, Blog, BlogCategory, Star, TicketCategory, Ticket
+from .models import ContactUs, Favorite, Blog, BlogCategory, Star, TicketCategory, Ticket, TicketConversation
 from accounts.serializers import UserSerializer
 from articles.serializers import MiddleArticleSerializer, LastArticleSerializer
 from superadmin.serializers import ManageAdminTicketSerializer
@@ -141,7 +141,6 @@ class TicketSerializer(serializers.ModelSerializer):
         model = Ticket
         exclude = [
             'updated_at',
-            'user',
             'id',
         ]
 
@@ -164,3 +163,44 @@ class TicketSerializer(serializers.ModelSerializer):
                 return AdminTicketSerializer(instance=admin).data
         else:
             return None
+
+class TicketConversationSerializer(serializers.ModelSerializer):
+    create_at = serializers.SerializerMethodField(read_only=True)
+    update_at = serializers.SerializerMethodField(read_only=True)
+    ticket_category = serializers.SerializerMethodField(read_only=True)
+    ticket = serializers.SerializerMethodField(read_only=True)
+
+
+    class Meta:
+        model = TicketConversation
+        fields = [
+            'id',
+            'create_at',
+            'update_at',
+            'ticket_category',
+            'ticket',
+            'user'
+        ]
+
+    def get_create_at(self, obj):
+        return obj.get_create_at_jalali()
+
+    def get_update_at(self, obj):
+        return obj.get_updated_at_jalali()
+
+    def get_ticket_category(self, obj):
+        return TicketCategorySerializer(instance=obj.ticket.ticket_category, partial=True).data
+
+    def get_ticket(self, obj):
+        return TicketSerializer(instance=obj.ticket, partial=True).data
+
+
+class DonationSerializer(serializers.Serializer):
+    donation = serializers.IntegerField(write_only=True)
+
+    def validate(self, attrs):
+        donation = attrs.get('donation', None)
+        if donation and type(donation) == int and donation > 1001:
+            return attrs
+        else:
+            raise serializers.ValidationError('donation has to be int and greater than 1001 toman!')
