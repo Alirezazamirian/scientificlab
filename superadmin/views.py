@@ -2,6 +2,8 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from detail_app.serializers import ContactUsSerializer
 from .models import AdminTicket
 from scientificlab.settings import EMAIL_HOST_USER
 from .serializers import (ManageUserSerializer, ManageArticleSerializer, ManageTicketsSerializer,
@@ -197,7 +199,7 @@ class ManageTickets(viewsets.ModelViewSet):
 
 class ManageContactUs(viewsets.ModelViewSet):
     queryset = ContactUs.objects.all()
-    serializer_class = ManageContactUsSerializer
+    serializer_class = ContactUsSerializer
     permission_classes = (IsSuperAndStuffUser,)
     lookup_field = 'pk'
     http_method_names = ['get', 'put', ]
@@ -210,7 +212,9 @@ class ManageContactUs(viewsets.ModelViewSet):
         contact_us = self.get_object()
         ser = self.serializer_class(contact_us, data=request.data, partial=True)
         if ser.is_valid():
-            ser.save()
+            contact_us.answer = ser.validated_data['answer']
+            contact_us.is_answered = ser.validated_data['is_answered']
+            contact_us.save()
             if contact_us.is_answered:
                 send_mail("subject", f"your answer is : {contact_us.answer}", EMAIL_HOST_USER, [contact_us.user.email])
             return Response(ser.data, status=status.HTTP_200_OK)

@@ -23,10 +23,24 @@ class ContactUsSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             'user': {'read_only': True},
-            'answer': {'required': False},
-            'is_answered': {'required': False},
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        request = self.context.get('request')
+        if request and request.method == 'POST':
+            self.fields['title'].required = True
+            self.fields['description'].required = True
+            self.fields['answer'].required = False
+            self.fields['is_answered'].required = False
+            self.fields['type'].required = True
+        if request and request.method in ['PUT', 'PATCH']:
+            self.fields['title'].required = False
+            self.fields['description'].required = False
+            self.fields['answer'].required = True
+            self.fields['is_answered'].required = True
+            self.fields['type'].required = False
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
