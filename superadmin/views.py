@@ -14,7 +14,7 @@ from .serializers import (ManageUserSerializer, ManageArticleSerializer, ManageT
 from .permissions import IsSuperAndStuffUser
 from accounts.models import User
 from articles.models import LastArticle, SubHeadArticle, MiddleArticle, HeadArticle, ArticleImages, ArticleDescription
-from detail_app.models import Ticket, ContactUs, Blog, BlogCategory
+from detail_app.models import Ticket, ContactUs, Blog, BlogCategory, TicketConversation
 from django.core.mail import send_mail
 import datetime
 from django.views.decorators.cache import never_cache
@@ -176,7 +176,7 @@ class ManageLastArticles(viewsets.ModelViewSet):
 
 
 class ManageTickets(viewsets.ModelViewSet):
-    queryset = Ticket.objects.all()
+    queryset = TicketConversation.objects.all()
     serializer_class = ManageTicketsSerializer
     permission_classes = (IsSuperAndStuffUser,)
     lookup_field = 'pk'
@@ -184,7 +184,7 @@ class ManageTickets(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         ticket_category = self.request.query_params.get('ticket_category', None)
-        not_answered_ticket = self.queryset.filter(is_answered=False).count()
+        not_answered_ticket = self.queryset.filter(ticket__is_answered=False).count()
         if ticket_category:
             ser = self.serializer_class(self.queryset.filter(ticket_category=ticket_category), many=True)
         else:
@@ -423,10 +423,10 @@ class ManageAdminTickets(viewsets.ModelViewSet):
         return Response(data=ser.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
-        ser = self.serializer_class(data=request.data)
+        ser = self.serializer_class(data=request.data, partial=True)
         if ser.is_valid():
-            user_ticket = ser.validated_data['ticket']
-            Ticket.objects.filter(id=user_ticket).update(is_answered=True)
+            user_ticket = ser.validated_data.get('ticket', None)
+            Ticket.objects.filter(id=user_ticket.id).update(is_answered=True)
             ser.save()
             return Response(ser.data, status=status.HTTP_201_CREATED)
         else:

@@ -3,8 +3,10 @@ from accounts.models import User
 from accounts.serializers import UserSerializer
 from articles.models import LastArticle, SubHeadArticle, MiddleArticle, HeadArticle, ArticleImages, ArticleDescription
 from articles.serializers import ArticleDescriptionSerializer
-from detail_app.models import Ticket, ContactUs, BlogCategory, Blog
+from detail_app.models import Ticket, ContactUs, BlogCategory, Blog, TicketConversation
 from .models import AdminTicket
+from detail_app.serializers import TicketSerializer
+
 
 class ManageUserSerializer(serializers.ModelSerializer):
     date_joined_jalali = serializers.SerializerMethodField(read_only=True)
@@ -143,9 +145,10 @@ class ManageTicketsSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField(read_only=True)
     update_at = serializers.SerializerMethodField(read_only=True)
     user = serializers.SerializerMethodField(read_only=True)
+    ticket = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = Ticket
+        model = TicketConversation
         exclude = ['updated_at',]
 
     def get_create_at(self, obj):
@@ -157,8 +160,8 @@ class ManageTicketsSerializer(serializers.ModelSerializer):
     def get_user(self, obj):
         return ManageUserSerializer(obj.user).data
 
-    def get_parent(self, obj):
-        return ManageTicketsSerializer(obj.parent, partial=True).data
+    def get_ticket(self, obj):
+        return TicketSerializer(obj.ticket, partial=True).data
 
 
 class ManageContactUsSerializer(serializers.ModelSerializer):
@@ -252,11 +255,16 @@ class ManageImageArticleSerializer(serializers.ModelSerializer):
 class ManageAdminTicketSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField(read_only=True)
     update_at = serializers.SerializerMethodField(read_only=True)
-    ticket = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = AdminTicket
-        exclude = ['updated_at',]
+        fields = [
+            'create_at',
+            'update_at',
+            'ticket',
+            'description',
+            'status'
+        ]
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
@@ -267,4 +275,5 @@ class ManageAdminTicketSerializer(serializers.ModelSerializer):
 
 
     def get_ticket(self, obj):
-        return ManageTicketsSerializer(obj.ticket, partial=True).data
+        return TicketSerializer(obj.ticket, partial=True).data
+

@@ -2,8 +2,26 @@ from rest_framework import serializers
 from .models import ContactUs, Favorite, Blog, BlogCategory, Star, TicketCategory, Ticket, TicketConversation
 from accounts.serializers import UserSerializer
 from articles.serializers import MiddleArticleSerializer, LastArticleSerializer
-from superadmin.serializers import ManageAdminTicketSerializer
 from superadmin.models import AdminTicket
+
+class AdminTicketSerializer(serializers.ModelSerializer):
+    create_at = serializers.SerializerMethodField(read_only=True)
+    update_at = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = AdminTicket
+        fields = [
+            'create_at',
+            'update_at',
+            'description'
+        ]
+
+    def get_create_at(self, obj):
+        return obj.get_create_at_jalali()
+
+    def get_update_at(self, obj):
+        return obj.get_updated_at_jalali()
+
 
 class ContactUsSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField(read_only=True)
@@ -117,25 +135,6 @@ class BlogCategorySerializer(serializers.ModelSerializer):
     def get_blog(self, obj):
         blog = Blog.objects.filter(category=obj)
         return BlogSerializer(instance=blog, many=True).data
-
-
-class AdminTicketSerializer(serializers.ModelSerializer):
-    create_at = serializers.SerializerMethodField(read_only=True)
-    update_at = serializers.SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = AdminTicket
-        fields = [
-            'create_at',
-            'update_at',
-            'description'
-        ]
-
-    def get_create_at(self, obj):
-        return obj.get_create_at_jalali()
-
-    def get_update_at(self, obj):
-        return obj.get_updated_at_jalali()
 
 
 class TicketCategorySerializer(serializers.ModelSerializer):
