@@ -10,11 +10,11 @@ from .serializers import (ManageUserSerializer, ManageArticleSerializer, ManageT
                           ManageContactUsSerializer, ManageBlogCategorySerializer, ManageBlogSerializer,
                           ManageSubArticlesSerializer, ManageMiddleArticlesSerializer, ManageHeadArticlesSerializer,
                           ManageLastArticlesSerializer, ManageImageArticleSerializer, ManageDescriptionArticleSerializer,
-                          ManageAdminTicketSerializer)
+                          ManageAdminTicketSerializer, ManageAdminTicketCategorySerializer)
 from .permissions import IsSuperAndStuffUser
 from accounts.models import User
 from articles.models import LastArticle, SubHeadArticle, MiddleArticle, HeadArticle, ArticleImages, ArticleDescription
-from detail_app.models import Ticket, ContactUs, Blog, BlogCategory, TicketConversation
+from detail_app.models import Ticket, ContactUs, Blog, BlogCategory, TicketConversation, TicketCategory
 from django.core.mail import send_mail
 import datetime
 from django.views.decorators.cache import never_cache
@@ -548,3 +548,39 @@ class UserDonations(APIView):
                 'befor_year': befor_year_amount,
             }
         }, status=status.HTTP_200_OK)
+
+
+class ManageTicketsCategory(viewsets.ModelViewSet):
+    queryset = TicketCategory.objects.all()
+    serializer_class = ManageAdminTicketCategorySerializer
+    permission_classes = (IsSuperAndStuffUser,)
+    lookup_field = 'pk'
+    http_method_names = ['get', 'post', 'put', 'delete']
+
+    def list(self, request, *args, **kwargs):
+        ser = self.serializer_class(self.queryset, many=True)
+        return Response(data=ser.data, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+        ser = self.serializer_class(data=request.data, partial=True)
+        if ser.is_valid():
+            ticket_cat = ser.validated_data.get("type", None)
+            if not ticket_cat:
+                return Response(status=status.HTTP_400_BAD_REQUEST, data=ser.errors)
+            TicketCategory.objects.create(type=ser.validated_data.get("type", None))
+            return Response(data={'result': 'successfully created'}, status=status.HTTP_201_CREATED)
+        else:
+            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk=None, *args, **kwargs):
+        ticket_cat = self.get_object()
+        ser = self.serializer_class(data=request.data)
+        if ser.is_valid():
+            ticket_cat.type = ser.validated_data['type']
+            ticket_cat.save()
+            return Response(data={'result': "successfully updated"}, status=status.HTTP_200_OK)
+        else:
+            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        return Response(data={'result': 'successfully deleted'}, status=status.HTTP_200_OK)

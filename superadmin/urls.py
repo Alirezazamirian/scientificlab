@@ -19,8 +19,12 @@ article_router.register(r'articles-admin', views.ManageAllArticles)
 urlpatterns += article_router.urls
 
 ticket_router = routers.DefaultRouter()
-ticket_router.register(r'tickets-admin', views.ManageTickets)
+ticket_router.register(r'tickets-admin-list-get', views.ManageTickets)
 urlpatterns += ticket_router.urls
+
+ticket_cat_router = routers.DefaultRouter()
+ticket_cat_router.register(r'tickets-admin-category', views.ManageTicketsCategory)
+urlpatterns += ticket_cat_router.urls
 
 contactus_router = routers.DefaultRouter()
 contactus_router.register(r'contact-us-admin', views.ManageContactUs)

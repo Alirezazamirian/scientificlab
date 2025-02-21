@@ -3,7 +3,7 @@ from accounts.models import User
 from accounts.serializers import UserSerializer
 from articles.models import LastArticle, SubHeadArticle, MiddleArticle, HeadArticle, ArticleImages, ArticleDescription
 from articles.serializers import ArticleDescriptionSerializer
-from detail_app.models import Ticket, ContactUs, BlogCategory, Blog, TicketConversation
+from detail_app.models import Ticket, ContactUs, BlogCategory, Blog, TicketConversation, TicketCategory
 from .models import AdminTicket
 from detail_app.serializers import TicketSerializer
 
@@ -87,7 +87,7 @@ class ManageSubArticlesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SubHeadArticle
-        exclude = ['updated_at',]
+        exclude = ['updated_at', ]
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
@@ -102,7 +102,7 @@ class ManageHeadArticlesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HeadArticle
-        exclude = ['updated_at',]
+        exclude = ['updated_at', ]
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
@@ -117,7 +117,7 @@ class ManageMiddleArticlesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MiddleArticle
-        exclude = ['updated_at',]
+        exclude = ['updated_at', ]
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
@@ -132,7 +132,7 @@ class ManageLastArticlesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LastArticle
-        exclude = ['updated_at',]
+        exclude = ['updated_at', ]
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
@@ -149,7 +149,7 @@ class ManageTicketsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TicketConversation
-        exclude = ['updated_at',]
+        exclude = ['updated_at', ]
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
@@ -201,7 +201,6 @@ class ManageContactUsSerializer(serializers.ModelSerializer):
 
 
 class ManageBlogCategorySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = BlogCategory
         fields = '__all__'
@@ -228,7 +227,7 @@ class ManageDescriptionArticleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ArticleDescription
-        exclude = ['updated_at',]
+        exclude = ['updated_at', ]
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
@@ -243,7 +242,7 @@ class ManageImageArticleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ArticleImages
-        exclude = ['updated_at',]
+        exclude = ['updated_at', ]
 
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
@@ -269,11 +268,14 @@ class ManageAdminTicketSerializer(serializers.ModelSerializer):
     def get_create_at(self, obj):
         return obj.get_create_at_jalali()
 
-
     def get_update_at(self, obj):
         return obj.get_updated_at_jalali()
-
 
     def get_ticket(self, obj):
         return TicketSerializer(obj.ticket, partial=True).data
 
+
+class ManageAdminTicketCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TicketCategory
+        fields = '__all__'
