@@ -254,10 +254,12 @@ class ManageImageArticleSerializer(serializers.ModelSerializer):
 class ManageAdminTicketSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField(read_only=True)
     update_at = serializers.SerializerMethodField(read_only=True)
+    ticket = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = AdminTicket
         fields = [
+            'id',
             'create_at',
             'update_at',
             'ticket',
