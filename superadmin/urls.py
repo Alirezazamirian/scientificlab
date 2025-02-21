@@ -14,21 +14,13 @@ router = routers.DefaultRouter()
 router.register(r'users-admin', views.ManageUsers)
 urlpatterns += router.urls
 
-article_router = routers.DefaultRouter()
-article_router.register(r'articles-admin', views.ManageAllArticles)
-urlpatterns += article_router.urls
-
-ticket_router = routers.DefaultRouter()
-ticket_router.register(r'tickets-admin-list-get', views.ManageTickets)
-urlpatterns += ticket_router.urls
-
-ticket_cat_router = routers.DefaultRouter()
-ticket_cat_router.register(r'tickets-admin-category', views.ManageTicketsCategory)
-urlpatterns += ticket_cat_router.urls
-
 contactus_router = routers.DefaultRouter()
 contactus_router.register(r'contact-us-admin', views.ManageContactUs)
 urlpatterns += contactus_router.urls
+
+article_router = routers.DefaultRouter()
+article_router.register(r'articles-admin', views.ManageAllArticles)
+urlpatterns += article_router.urls
 
 blogcat_router = routers.DefaultRouter()
 blogcat_router.register(r'blog-category-admin', views.ManageCategoryBlog)
@@ -65,3 +57,11 @@ urlpatterns += article_image.urls
 admin_ticket = routers.DefaultRouter()
 admin_ticket.register(r'ticket-response-admin', views.ManageAdminTickets)
 urlpatterns += admin_ticket.urls
+
+ticket_router = routers.DefaultRouter()
+ticket_router.register(r'tickets-list-get-admin', views.ManageTickets)
+urlpatterns += ticket_router.urls
+
+ticket_cat_router = routers.DefaultRouter()
+ticket_cat_router.register(r'tickets-category-admin', views.ManageTicketsCategory)
+urlpatterns += ticket_cat_router.urls

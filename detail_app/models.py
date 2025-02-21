@@ -88,7 +88,6 @@ class Ticket(GeneralDateModel):
     title = models.CharField(verbose_name=_('Title'), max_length=100)
     description = models.TextField(verbose_name=_('Description'), max_length=500)
     is_answered = models.BooleanField(verbose_name=_('Is Answer'), default=False)
-    parent = models.ForeignKey('Ticket', verbose_name=_('Ticket'), on_delete=models.CASCADE, null=True, blank=True)
     ticket_category = models.ForeignKey('TicketCategory', on_delete=models.CASCADE, verbose_name=_('Ticket Category'))
 
     class Meta:

@@ -141,20 +141,28 @@ class TicketCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TicketCategory
-        fields = '__all__'
+        fields = [
+            'type'
+        ]
 
 
 class TicketSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField(read_only=True)
     update_at = serializers.SerializerMethodField(read_only=True)
-    parent = serializers.SerializerMethodField(read_only=True)
     admin_ticket = serializers.SerializerMethodField(read_only=True)
+    ticket_category = serializers.CharField(required=True)
 
     class Meta:
         model = Ticket
-        exclude = [
-            'updated_at',
+        fields = [
+            'update_at',
+            'create_at',
+            'ticket_category',
+            'admin_ticket',
+            'description',
+            'title',
             'id',
+            'is_answered'
         ]
 
     def get_create_at(self, obj):
@@ -162,12 +170,6 @@ class TicketSerializer(serializers.ModelSerializer):
 
     def get_update_at(self, obj):
         return obj.get_updated_at_jalali()
-
-    def get_parent(self, obj):
-        if obj.parent:
-            return TicketSerializer(instance=obj.parent).data
-        else:
-            return None
 
     def get_admin_ticket(self, obj):
         admin_ticket = AdminTicket.objects.filter(ticket=obj)
@@ -191,8 +193,7 @@ class TicketConversationSerializer(serializers.ModelSerializer):
             'create_at',
             'update_at',
             'ticket_category',
-            'ticket',
-            'user'
+            'ticket'
         ]
 
     def get_create_at(self, obj):

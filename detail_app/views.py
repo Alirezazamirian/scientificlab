@@ -27,7 +27,7 @@ class FavouriteView(viewsets.ModelViewSet):
     serializer_class = FavouriteSerializer
     permission_classes = [IsAuthenticated]
     lookup_field = 'pk'
-    http_method_names = ['get', 'post', 'delete',]
+    http_method_names = ['get', 'post', 'delete', ]
 
     def get_queryset(self):
         return Favorite.objects.filter(user=self.request.user)
@@ -79,26 +79,29 @@ class BlogCategoryView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+# User Tickets for only POST method
 class TicketPost(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = TicketSerializer
 
     def post(self, request):
-        parent_id = self.request.query_params.get('parent_id', None)
-        cat = self.request.query_params.get('ticket_category', None)
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            Ticket.objects.create(user=self.request.user,
-                                  title=serializer.validated_data['title'],
-                                  description=serializer.validated_data['description'],
-                                  parent_id=parent_id,
-                                  ticket_category=cat,
-                                  is_appropriate=serializer.validated_data['is_appropriate'])
+            ticket_cat_from_user = serializer.validated_data.get('ticket_category', None)
+            ticket_category = TicketCategory.objects.get(type=ticket_cat_from_user)
+            new_ticket = Ticket.objects.create(title=serializer.validated_data['title'],
+                                               description=serializer.validated_data['description'],
+                                               ticket_category=ticket_category)
+
+            TicketConversation.objects.create(user=request.user,
+                                              ticket=new_ticket)
+
             return Response(data={'message': 'ticket was created'}, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# User tickets for only viewing as list
 class TicketCategoryView(APIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = TicketCategorySerializer
@@ -112,16 +115,17 @@ class TicketCategoryView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+# User tickets for only viewing as partial
 class TicketConversationListView(APIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = TicketConversationSerializer
 
     def get_queryset(self):
-        return TicketConversation.objects.all()
+        return TicketConversation.objects.filter(user=self.request.user)
 
     def get(self, request):
         if self.get_queryset().exists():
-            serializer = self.serializer_class(self.get_queryset().filter(user=self.request.user), many=True)
+            serializer = self.serializer_class(self.get_queryset(), many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'there is no conversation!'}, status=status.HTTP_204_NO_CONTENT)
@@ -187,6 +191,7 @@ class DonatePost(APIView):
             user.donation += ser.validated_data['donation']
             user.donate_at = datetime.datetime.now()
             user.save()
-            return Response({'message': f'donation amount : {ser.validated_data['donation']}'}, status=status.HTTP_200_OK)
+            return Response({'message': f'donation amount : {ser.validated_data['donation']}'},
+                            status=status.HTTP_200_OK)
         else:
             return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
