@@ -8,6 +8,7 @@ from .serializers import (ContactUsSerializer, FavouriteSerializer, ScoreSeriali
                           BlogCategorySerializer, TicketSerializer, TicketCategorySerializer,
                           TicketConversationSerializer, DonationSerializer)
 from .models import ContactUs, Favorite, Star, BlogCategory, Blog, Ticket, TicketCategory, TicketConversation
+from articles.models import LastArticle
 
 
 class ContactUsView(APIView):
@@ -41,12 +42,13 @@ class FavouriteView(viewsets.ModelViewSet):
             return Response({'message': 'there is no favourite list!'}, status=status.HTTP_204_NO_CONTENT)
 
     def create(self, request, *args, **kwargs):
-        params = self.request.query_params.get('article_id', None)
-        if params:
-            Favorite.objects.create(user=request.user, articles_id=params)
+        ser = self.serializer_class(data=request.data)
+        if ser.is_valid():
+            last_article = LastArticle.objects.filter(id=ser.validated_data['article_id'])
+            Favorite.objects.create(user=request.user, articles=last_article)
             return Response({'message': 'favourite was created'}, status=status.HTTP_201_CREATED)
         else:
-            return Response({'error': 'insert article_id'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ScoreView(APIView):

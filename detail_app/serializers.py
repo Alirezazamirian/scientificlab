@@ -68,16 +68,15 @@ class ContactUsSerializer(serializers.ModelSerializer):
 
 
 class FavouriteSerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField()
     articles = serializers.SerializerMethodField()
+    article_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Favorite
-        fields = '__all__'
-        # exclude = ['articles']
-
-    def get_user(self, obj):
-        return UserSerializer(instance=obj.user).data
+        fields = [
+            'id',
+            'articles'
+        ]
 
     def get_articles(self, obj):
         return LastArticleSerializer(instance=obj.articles).data

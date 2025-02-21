@@ -46,6 +46,7 @@ class ManageUsers(viewsets.ModelViewSet):
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
+# only for GET method in admin panel
 class ManageAllArticles(viewsets.ModelViewSet):
     queryset = LastArticle.objects.all()
     serializer_class = ManageArticleSerializer
@@ -54,7 +55,8 @@ class ManageAllArticles(viewsets.ModelViewSet):
     http_method_names = ['get',]
 
     def list(self, request, *args, **kwargs):
-        ser = self.serializer_class(self.queryset, many=True)
+        queryset = LastArticle.objects.all()
+        ser = self.serializer_class(queryset, many=True)
         return Response(ser.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
@@ -71,23 +73,36 @@ class ManageSubArticles(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete']
 
     def list(self, request, *args, **kwargs):
-        queryset = self.queryset
+        queryset = SubHeadArticle.objects.all()
         ser = self.serializer_class(queryset, many=True)
         return Response(ser.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         ser = self.serializer_class(data=request.data)
         if ser.is_valid():
-            ser.save()
-            return Response(ser.data, status=status.HTTP_201_CREATED)
+            head_article = HeadArticle.objects.filter(id=ser.validated_data.get('head_article_id', None)).first()
+            if not head_article:
+                return Response(data={'result': 'there is no Head Article with this ID'}, status=status.HTTP_400_BAD_REQUEST)
+            SubHeadArticle.objects.create(title=ser.validated_data.get('title', None),
+                                          description=ser.validated_data.get('description', None),
+                                          type=ser.validated_data.get('type', None),
+                                          head_article=head_article,
+                                          slug=ser.validated_data.get('slug', None))
+            return Response(data={'result': 'created successfully'}, status=status.HTTP_201_CREATED)
         return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, pk=None, *args, **kwargs):
         sub_article = self.get_object()
         ser = self.serializer_class(sub_article, data=request.data, partial=True)
         if ser.is_valid():
+            head_article = HeadArticle.objects.get(id=ser.validated_data.get('head_article_id', None))
+            ser.head_article = head_article
+            ser.title = ser.validated_data.get('title', None)
+            ser.description = ser.validated_data.get('description', None)
+            ser.type = ser.validated_data.get('type', None)
+            ser.slug = ser.validated_data.get('slug', None)
             ser.save()
-            return Response(ser.data, status=status.HTTP_200_OK)
+            return Response(data={'result': 'updated successfully'}, status=status.HTTP_200_OK)
         return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -99,24 +114,40 @@ class ManageMiddleArticles(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete']
 
     def list(self, request, *args, **kwargs):
-        queryset = self.queryset
+        queryset = MiddleArticle.objects.all()
         ser = self.serializer_class(queryset, many=True)
         return Response(ser.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         ser = self.serializer_class(data=request.data)
         if ser.is_valid():
-            ser.save()
-            return Response(ser.data, status=status.HTTP_201_CREATED)
+            sub_head_article = SubHeadArticle.objects.filter(id=ser.validated_data.get('sub_head_article_id', None)).first()
+            if not sub_head_article:
+                return Response(data={'result': 'there is no Sub Head Article with this ID'}, status=status.HTTP_400_BAD_REQUEST)
+            MiddleArticle.objects.create(title=ser.validated_data.get('title', None),
+                                         description=ser.validated_data.get('description', None),
+                                         sub_head_article=sub_head_article,
+                                         slug=ser.validated_data.get('slug', None))
+            return Response(data={'result': 'created successfully'}, status=status.HTTP_201_CREATED)
         return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, pk=None, *args, **kwargs):
         middle_article = self.get_object()
         ser = self.serializer_class(middle_article, data=request.data, partial=True)
         if ser.is_valid():
+            sub_head_article = SubHeadArticle.objects.filter(
+                id=ser.validated_data.get('sub_head_article_id', None)).first()
+            if not sub_head_article:
+                return Response(data={'result': 'there is no Sub Head Article with this ID'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            ser.head_article = sub_head_article
+            ser.title = ser.validated_data.get('title', None)
+            ser.description = ser.validated_data.get('description', None)
+            ser.slug = ser.validated_data.get('slug', None)
             ser.save()
-            return Response(ser.data, status=status.HTTP_200_OK)
-        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={'result': 'updated successfully'}, status=status.HTTP_201_CREATED)
+        else:
+            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ManageHeadArticles(viewsets.ModelViewSet):
@@ -127,7 +158,7 @@ class ManageHeadArticles(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete']
 
     def list(self, request, *args, **kwargs):
-        queryset = self.queryset
+        queryset = HeadArticle.objects.all()
         ser = self.serializer_class(queryset, many=True)
         return Response(ser.data, status=status.HTTP_200_OK)
 
@@ -155,23 +186,63 @@ class ManageLastArticles(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete']
 
     def list(self, request, *args, **kwargs):
-        queryset = self.queryset
+        queryset = LastArticle.objects.all()
         ser = self.serializer_class(queryset, many=True)
         return Response(ser.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         ser = self.serializer_class(data=request.data)
         if ser.is_valid():
-            ser.save()
-            return Response(ser.data, status=status.HTTP_201_CREATED)
+            sub_head_article = SubHeadArticle.objects.filter(
+                id=ser.validated_data.get('sub_head_article_id', None)).first()
+            if not sub_head_article and ser.validated_data.get('sub_head_article_id', None):
+                return Response(data={'result': 'there is no Sub Head Article with this ID'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            middle_article = MiddleArticle.objects.filter(
+                id=ser.validated_data.get('middle_article_id', None)).first()
+            if not middle_article and ser.validated_data.get('middle_article_id', None):
+                return Response(data={'result': 'there is no Middle Article with this ID'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            LastArticle.objects.create(title=ser.validated_data.get('title', None),
+                                       description=ser.validated_data.get('description', None),
+                                       sub_head_article=sub_head_article,
+                                       middle_article=middle_article,
+                                       slug=ser.validated_data.get('slug', None),
+                                       abbreviation_name=ser.validated_data.get('abbreviation_name', None),
+                                       score=ser.validated_data.get('score', None),
+                                       is_free=ser.validated_data.get('is_free', None),)
+
+            return Response(data={'result': 'created successfully'}, status=status.HTTP_201_CREATED)
         return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, pk=None, *args, **kwargs):
         last_article = self.get_object()
         ser = self.serializer_class(last_article, data=request.data, partial=True)
         if ser.is_valid():
+            sub_head_article = SubHeadArticle.objects.filter(
+                id=ser.validated_data.get('sub_head_article_id', None)).first()
+            if not sub_head_article and ser.validated_data.get('sub_head_article_id', None):
+                return Response(data={'result': 'there is no Sub Head Article with this ID'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            middle_article = MiddleArticle.objects.filter(
+                id=ser.validated_data.get('middle_article_id', None)).first()
+            if not middle_article and ser.validated_data.get('middle_article_id', None):
+                return Response(data={'result': 'there is no Middle Article with this ID'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            ser.title = ser.validated_data.get('title', None)
+            ser.description = ser.validated_data.get('description', None)
+            ser.score = last_article.score
+            ser.is_free = ser.validated_data.get('is_free', None)
+            ser.abbreviation_name = ser.validated_data.get('abbreviation_name', None)
+            ser.slug = ser.validated_data.get('slug', None)
+            ser.sub_head_article = sub_head_article
+            ser.middle_article = middle_article
             ser.save()
-            return Response(ser.data, status=status.HTTP_200_OK)
+            return Response(data={'result': 'updated successfully'}, status=status.HTTP_201_CREATED)
         return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

@@ -2,7 +2,7 @@ from rest_framework import serializers
 from accounts.models import User
 from accounts.serializers import UserSerializer
 from articles.models import LastArticle, SubHeadArticle, MiddleArticle, HeadArticle, ArticleImages, ArticleDescription
-from articles.serializers import ArticleDescriptionSerializer
+from articles.serializers import ArticleDescriptionSerializer, MiddleArticleSerializer
 from detail_app.models import Ticket, ContactUs, BlogCategory, Blog, TicketConversation, TicketCategory
 from .models import AdminTicket
 from detail_app.serializers import TicketSerializer
@@ -84,6 +84,8 @@ class ManageArticleSerializer(serializers.ModelSerializer):
 class ManageSubArticlesSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField()
     update_at = serializers.SerializerMethodField()
+    head_article_id = serializers.IntegerField(write_only=True)
+    head_article = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = SubHeadArticle
@@ -94,6 +96,9 @@ class ManageSubArticlesSerializer(serializers.ModelSerializer):
 
     def get_update_at(self, obj):
         return obj.get_updated_at_jalali()
+
+    def get_head_article(self, obj):
+        return ManageHeadArticlesSerializer(obj.head_article, partial=True).data
 
 
 class ManageHeadArticlesSerializer(serializers.ModelSerializer):
@@ -114,6 +119,8 @@ class ManageHeadArticlesSerializer(serializers.ModelSerializer):
 class ManageMiddleArticlesSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField()
     update_at = serializers.SerializerMethodField()
+    sub_head_article_id = serializers.IntegerField(write_only=True)
+    sub_head_article = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = MiddleArticle
@@ -125,10 +132,17 @@ class ManageMiddleArticlesSerializer(serializers.ModelSerializer):
     def get_update_at(self, obj):
         return obj.get_updated_at_jalali()
 
+    def get_sub_head_article(self, obj):
+        return ManageSubArticlesSerializer(obj.sub_head_article, partial=True).data
+
 
 class ManageLastArticlesSerializer(serializers.ModelSerializer):
     create_at = serializers.SerializerMethodField()
     update_at = serializers.SerializerMethodField()
+    sub_head_article_id = serializers.IntegerField(write_only=True, required=False)
+    sub_head_article = serializers.SerializerMethodField(read_only=True)
+    middle_article_id = serializers.IntegerField(write_only=True, required=False)
+    middle_article = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = LastArticle
@@ -139,6 +153,28 @@ class ManageLastArticlesSerializer(serializers.ModelSerializer):
 
     def get_update_at(self, obj):
         return obj.get_updated_at_jalali()
+
+    def get_middle_article(self, obj):
+        if not obj.middle_article:
+            return None
+        return ManageMiddleArticlesSerializer(obj.middle_article, partial=True).data
+
+    def get_sub_head_article(self, obj):
+        if not obj.sub_head_article:
+            return None
+        return ManageSubArticlesSerializer(obj.sub_head_article, partial=True).data
+
+    def validate(self, attrs):
+        sub_head_article_id = attrs.get('sub_head_article_id', None)
+        middle_article_id = attrs.get('middle_article_id', None)
+
+        if not sub_head_article_id and not middle_article_id:
+            raise serializers.ValidationError("At least one of 'sub_head_article_id' or 'middle_article_id' must be provided.")
+
+        if sub_head_article_id and middle_article_id:
+            raise serializers.ValidationError("Only one of 'sub_head_article_id' or 'middle_article_id' can be provided.")
+
+        return attrs
 
 
 class ManageTicketsSerializer(serializers.ModelSerializer):

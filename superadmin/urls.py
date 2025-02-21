@@ -22,13 +22,9 @@ article_router = routers.DefaultRouter()
 article_router.register(r'articles-admin', views.ManageAllArticles)
 urlpatterns += article_router.urls
 
-blogcat_router = routers.DefaultRouter()
-blogcat_router.register(r'blog-category-admin', views.ManageCategoryBlog)
-urlpatterns += blogcat_router.urls
-
-blog_router = routers.DefaultRouter()
-blog_router.register(r'blog-admin', views.ManageBlog)
-urlpatterns += blog_router.urls
+head_article = routers.DefaultRouter()
+head_article.register(r'head-article-admin', views.ManageHeadArticles)
+urlpatterns += head_article.urls
 
 sub_article = routers.DefaultRouter()
 sub_article.register(r'sub-article-admin', views.ManageSubArticles)
@@ -37,10 +33,6 @@ urlpatterns += sub_article.urls
 middle_article = routers.DefaultRouter()
 middle_article.register(r'middle-article-admin', views.ManageMiddleArticles)
 urlpatterns += middle_article.urls
-
-head_article = routers.DefaultRouter()
-head_article.register(r'head-article-admin', views.ManageHeadArticles)
-urlpatterns += head_article.urls
 
 last_article = routers.DefaultRouter()
 last_article.register(r'last-article-admin', views.ManageLastArticles)
@@ -65,3 +57,11 @@ urlpatterns += ticket_router.urls
 ticket_cat_router = routers.DefaultRouter()
 ticket_cat_router.register(r'tickets-category-admin', views.ManageTicketsCategory)
 urlpatterns += ticket_cat_router.urls
+
+blogcat_router = routers.DefaultRouter()
+blogcat_router.register(r'blog-category-admin', views.ManageCategoryBlog)
+urlpatterns += blogcat_router.urls
+
+blog_router = routers.DefaultRouter()
+blog_router.register(r'blog-admin', views.ManageBlog)
+urlpatterns += blog_router.urls
