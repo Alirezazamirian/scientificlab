@@ -69,14 +69,16 @@ class ContactUsSerializer(serializers.ModelSerializer):
 
 class FavouriteSerializer(serializers.ModelSerializer):
     articles = serializers.SerializerMethodField()
-    article_id = serializers.SerializerMethodField()
+    article_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = Favorite
-        fields = [
-            'id',
-            'articles'
-        ]
+        fields = '__all__'
+        extra_kwargs = {
+            'article_id': {'write_only': True, 'required': True},
+            'user': {'required': False},
+            'articles': {'read_only': True}
+        }
 
     def get_articles(self, obj):
         return LastArticleSerializer(instance=obj.articles).data

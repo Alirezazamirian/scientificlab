@@ -30,11 +30,8 @@ class FavouriteView(viewsets.ModelViewSet):
     lookup_field = 'pk'
     http_method_names = ['get', 'post', 'delete', ]
 
-    def get_queryset(self):
-        return Favorite.objects.filter(user=self.request.user)
-
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = Favorite.objects.filter(user=self.request.user)
         if queryset:
             ser = self.serializer_class(queryset, many=True)
             return Response(ser.data, status=status.HTTP_200_OK)
@@ -44,7 +41,9 @@ class FavouriteView(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         ser = self.serializer_class(data=request.data)
         if ser.is_valid():
-            last_article = LastArticle.objects.filter(id=ser.validated_data['article_id'])
+            last_article = LastArticle.objects.filter(id=ser.validated_data.get('article_id', None)).first()
+            if not last_article:
+                return Response(data={'result': 'There is no such a Article with this ID!'}, status=status.HTTP_400_BAD_REQUEST)
             Favorite.objects.create(user=request.user, articles=last_article)
             return Response({'message': 'favourite was created'}, status=status.HTTP_201_CREATED)
         else:
