@@ -6,4 +6,5 @@ urlpatterns = [
     path('test/<slug:slug>/', views.SubHeadArticleTestView.as_view(), name='SubHeadArticleView'),
     path('experminet/<slug:slug>/', views.SubHeadArticleExperimentView.as_view(), name='SubHeadArticleView'),
     path('middle-last/<slug:slug>/', views.MiddleArticleView.as_view(), name='MiddleArticleView'),
+    path('last-article/<slug:slug>/', views.LastArticleView.as_view(), name='LastArticleView'),
 ]

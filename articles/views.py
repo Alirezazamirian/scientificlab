@@ -50,11 +50,9 @@ class SubHeadArticleExperimentView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-
 class LastArticleView(APIView):
     serializer_class = LastArticleSerializer
     permission_classes = [IsAuthenticated]
-
 
     def validation(self, request, slug):
         if self.get_queryset(slug=slug).is_free or (not self.get_queryset(slug=slug).is_free and request.user.is_pay):
@@ -76,7 +74,7 @@ class LastArticleView(APIView):
         query = self.get_queryset(slug)
         if not query:
             return Response({"detail": "Article not found."}, status=status.HTTP_404_NOT_FOUND)
-        serializer = self.serializer_class(query, partial=True)
+        serializer = self.serializer_class(query, partial=True, context={'request': self.request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -84,11 +82,10 @@ class MiddleArticleView(APIView):
     serializer_class = MiddleArticleSerializer
     permission_classes = [IsAuthenticated]
 
-
     def get(self, request, slug):
         query = MiddleArticle.objects.filter(slug=slug)
         if query.exists():
-            serializer = self.serializer_class(query, many=True)
+            serializer = self.serializer_class(query, many=True, context={'request': self.request})
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             last_article_view = LastArticleView()
