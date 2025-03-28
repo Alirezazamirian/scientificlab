@@ -324,7 +324,7 @@ class ManageCategoryBlog(viewsets.ModelViewSet):
     http_method_names = ['get', 'put', 'delete', 'post']
 
     def list(self, request, *args, **kwargs):
-        ser = self.serializer_class(self.queryset, many=True)
+        ser = self.serializer_class(BlogCategory.objects.all(), many=True)
         return Response(ser.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
@@ -358,7 +358,7 @@ class ManageBlog(viewsets.ModelViewSet):
     http_method_names = ['get', 'put', 'delete', 'post']
 
     def list(self, request, *args, **kwargs):
-        ser = self.serializer_class(self.queryset, many=True)
+        ser = self.serializer_class(Blog.objects.all(), many=True)
         return Response(ser.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
