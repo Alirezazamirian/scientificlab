@@ -20,6 +20,7 @@ import datetime
 from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
 
+
 class ManageUsers(viewsets.ModelViewSet):
     queryset = User.objects.filter(is_superuser=False, is_staff=False)
     serializer_class = ManageUserSerializer
@@ -276,7 +277,7 @@ class ManageContactUs(viewsets.ModelViewSet):
     http_method_names = ['get', 'put', ]
 
     def list(self, request, *args, **kwargs):
-        ser = self.serializer_class(self.queryset, many=True)
+        ser = self.serializer_class(ContactUs.objects.all(), many=True)
         return Response(ser.data, status=status.HTTP_200_OK)
 
     def update(self, request, pk=None, *args, **kwargs):
