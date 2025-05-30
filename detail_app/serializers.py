@@ -30,6 +30,7 @@ class ContactUsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactUs
         fields = [
+            'id',
             'create_at',
             'update_at',
             'title',
