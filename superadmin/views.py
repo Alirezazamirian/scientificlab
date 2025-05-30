@@ -29,7 +29,7 @@ class ManageUsers(viewsets.ModelViewSet):
     http_method_names = ['get', 'put', ]
 
     def list(self, request, *args, **kwargs):
-        ser = self.serializer_class(self.queryset, many=True)
+        ser = self.serializer_class(User.objects.filter(is_superuser=False, is_staff=False), many=True)
         return Response(ser.data, status=status.HTTP_200_OK)
 
     def update(self, request, pk=None, *args, **kwargs):
@@ -256,11 +256,11 @@ class ManageTickets(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         ticket_category = self.request.query_params.get('ticket_category', None)
-        not_answered_ticket = self.queryset.filter(ticket__is_answered=False).count()
+        not_answered_ticket = TicketConversation.objects.filter(ticket__is_answered=False).count()
         if ticket_category:
-            ser = self.serializer_class(self.queryset.filter(ticket_category=ticket_category), many=True)
+            ser = self.serializer_class(TicketConversation.objects.filter(ticket_category=ticket_category), many=True)
         else:
-            ser = self.serializer_class(self.queryset, many=True)
+            ser = self.serializer_class(TicketConversation.objects.all(), many=True)
         return Response({'result': ser.data, 'not_answered_count': not_answered_ticket}, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
@@ -393,7 +393,7 @@ class ManageDescriptionArticles(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete']
 
     def list(self, request, *args, **kwargs):
-        queryset = self.queryset
+        queryset = ArticleDescription.objects.all()
         ser = self.serializer_class(queryset, many=True)
         return Response(ser.data, status=status.HTTP_200_OK)
 
@@ -421,7 +421,7 @@ class ManageImageArticles(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete']
 
     def list(self, request, *args, **kwargs):
-        queryset = self.queryset
+        queryset = ArticleImages.objects.all()
         ser = self.serializer_class(queryset, many=True)
         return Response(ser.data, status=status.HTTP_200_OK)
 
@@ -489,9 +489,9 @@ class ManageAdminTickets(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         ticket_category = self.request.query_params.get('ticket_category', None)
         if ticket_category:
-            ser = self.serializer_class(self.queryset.filter(ticket__ticket_category=ticket_category), many=True)
+            ser = self.serializer_class(AdminTicket.objects.filter(ticket__ticket_category=ticket_category), many=True)
         else:
-            ser = self.serializer_class(self.queryset, many=True)
+            ser = self.serializer_class(AdminTicket.objects.all(), many=True)
         return Response(data=ser.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
@@ -635,7 +635,7 @@ class ManageTicketsCategory(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete']
 
     def list(self, request, *args, **kwargs):
-        ser = self.serializer_class(self.queryset, many=True)
+        ser = self.serializer_class(TicketCategory.objects.all(), many=True)
         return Response(data=ser.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
