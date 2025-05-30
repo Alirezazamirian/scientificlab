@@ -498,6 +498,8 @@ class ManageAdminTickets(viewsets.ModelViewSet):
         ser = self.serializer_class(data=request.data, partial=True)
         if ser.is_valid():
             user_ticket = ser.validated_data.get('ticket', None)
+            if user_ticket is None:
+                return Response({'Error': 'Ticket must be provided'}, status=status.HTTP_400_BAD_REQUEST)
             Ticket.objects.filter(id=user_ticket.id).update(is_answered=True)
             ser.save()
             return Response(ser.data, status=status.HTTP_201_CREATED)
