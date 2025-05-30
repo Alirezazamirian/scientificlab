@@ -508,11 +508,14 @@ class ManageAdminTickets(viewsets.ModelViewSet):
 
     def update(self, request, pk=None, *args, **kwargs):
         ticket = self.get_object()
-        ser = self.serializer_class(data=request.data)
+        ser = self.serializer_class(ticket, data=request.data, partial=True)
         if ser.is_valid():
-            ticket.status = ser.validated_data['status']
-            ticket.description = ser.validated_data['description']
-            ticket.ticket.id = ser.validated_data['ticket']
+            ticket_status = ser.validated_data.get('status', None)
+            ticket_description = ser.validated_data.get('description', None)
+            ticket_ticket = ser.validated_data.get('ticket', None)
+            ticket.status = ticket_status if ticket_status is not None else True
+            ticket.description = ticket_description if ticket_description is not None else ticket.description
+            ticket.ticket.id = ticket_ticket if ticket_ticket is not None else ticket.ticket.id
             ticket.save()
             return Response(ser.data, status=status.HTTP_200_OK)
         else:
